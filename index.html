@@ -103,6 +103,27 @@
   .retry { margin-top:12px; height:42px; padding:0 22px; border:0; border-radius:8px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
   .caught { text-align:center; padding:26px 16px; color:var(--muted); font-size:.9em; }
   .caught svg { width:40px; height:40px; color:var(--blue); display:block; margin:0 auto 6px; }
+  .wcard { background:var(--card); margin-bottom:8px; padding:6px 12px 10px; }
+  .wrow { padding:8px 0; border-bottom:1px solid var(--line); }
+  .wrow:last-child { border-bottom:0; }
+  .wrow:empty { display:none; }
+  .wlabel { color:var(--muted); font-size:.75em; margin-bottom:4px; }
+  .wtop { display:flex; align-items:center; gap:10px; }
+  .wtop .big { font-size:2em; line-height:1; }
+  .wtop b { font-size:1.05em; }
+  .wtop span { color:var(--muted); font-size:.85em; }
+  .chips { display:flex; gap:6px; }
+  .chip { flex:1; text-align:center; background:var(--bg); border-radius:10px; padding:4px 2px; line-height:1.3; }
+  .chip small { display:block; color:var(--muted); font-size:.7em; }
+  .chip b { font-size:.88em; direction:ltr; display:inline-block; }
+  .chip.next { background:var(--blue); color:#fff; }
+  .chip.next small { color:#fff; opacity:.9; }
+  .prices { display:flex; gap:8px; }
+  .prices div { flex:1; background:var(--bg); border-radius:10px; padding:6px 10px; line-height:1.35; }
+  .prices small { display:block; color:var(--muted); font-size:.7em; }
+  .prices b { font-size:.95em; }
+  .wnote { color:var(--muted); font-size:.68em; margin-top:4px; }
+  article img.pic { display:block; width:100%; max-height:360px; object-fit:cover; background:var(--line); }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:.85em; display:none; z-index:30; }
 </style>
 </head>
@@ -112,12 +133,10 @@
     <div class="logo">فيس بوك</div>
     <div class="tools">
       <button id="bplus" aria-label="إنشاء"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
-      <button id="bsearch" aria-label="بحث"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
       <button id="bmsg" aria-label="ماسنجر"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
     </div>
   </div>
   <nav class="tabs" id="cats" aria-label="الأقسام"></nav>
-  <div class="sbar" id="sbar"><input id="sq" type="search" placeholder="بحث في فيس بوك" aria-label="بحث"></div>
 </header>
 
 <main>
@@ -135,7 +154,29 @@
 <script>
 /* ============ الإعدادات ============ */
 const USER_NAME = "حسن علي";   /* الاسم اللي بيظهر بالتطبيق */
+const CITY = "دمشق";   /* مدينة الطقس ومواعيد الصلاة: دمشق، حلب، حمص، حماة، اللاذقية، طرطوس، إدلب، دير الزور، الرقة، درعا، الحسكة، السويداء */
+const CITIES = { "دمشق":[33.5138,36.2765], "حلب":[36.2021,37.1343], "حمص":[34.7324,36.7137], "حماة":[35.1318,36.7578], "اللاذقية":[35.5317,35.7898], "طرطوس":[34.8890,35.8866], "إدلب":[35.9306,36.6339], "دير الزور":[35.3359,40.1408], "الرقة":[35.9528,39.0079], "درعا":[32.6189,36.1021], "الحسكة":[36.5024,40.7477], "السويداء":[32.7090,36.5695] };
+/* نصيحة جديدة كل يوم، بتتبدل لحالها. عدّل أو أضف متل ما بدك */
+const TIPS = [
+  "إذا إجتك رسالة بتقلك إنك ربحت جائزة وإنت ما شاركت بشي، هاي نصب. تجاهلها.",
+  "ما حدا بيعطي مصاري لحدا ما بيعرفو. إذا وحدة غريبة طلبت منك مصاري أو هدية، هاد نصب.",
+  "كود التفعيل اللي بيجيك برسالة ما بتعطيه لحدا أبداً، حتى لو قال إنو من البنك أو شركة الاتصالات.",
+  "قبل ما ترد على أي حدا غريب بالإنترنت، احكي لحدا من العيلة.",
+  "الصفحات اللي بتوعدك بأرباح سريعة أو جوائز كبيرة كلها نصب.",
+  "رابط جاي من حدا ما بتعرفو؟ لا تضغط عليه.",
+  "ما تحوّل مصاري لحدا قبل ما تتأكد منو بالتلفون وتسأل عنو.",
+  "إذا اتصل فيك حدا وقال إنو من البنك أو من الشرطة وطلب معلومات منك، سكّر الخط وخبّر عيلتك.",
+  "اللي بيحبك بجد بيعرّفك على أهلو، مو بيطلب منك مصاري.",
+  "كلمة السر ما بتعطيها لحدا، ولا حتى لحدا بيقلك إنو من الدعم الفني.",
+  "صور أو فيديوهات من حدا ما بتعرفو وبعدين بيطلب مصاري؟ هاد ابتزاز. لا ترد وخبّر ابنك.",
+  "قبل ما تشارك أي خبر، تأكد إنو من مصدر معروف.",
+  "الحساب اللي بيضيفك وبيبعتلك رسائل حلوة فجأة غالباً حساب وهمي.",
+  "ما في شي اسمو ربح مضمون. اللي بيقلك هيك بدو يخدعك.",
+  "إذا حسيت بشي مو مظبوط، وقّف وسأل حدا بتثق فيه. ما في استعجال."
+];
 const PAGES = [
+  { id:"fam",  name:"العيلة",   short:"ع",   color:"#8E24AA" },
+  { id:"tip",  name:"نصائح",    short:"نص",  color:"#00897B" },
   { id:"sana", name:"سانا",      short:"سا",  color:"#C0392B" },
   { id:"bbc",  name:"بي بي سي",  short:"BBC", color:"#B71C1C" },
   { id:"aja",  name:"الجزيرة نت", short:"جز",  color:"#B8860B" },
@@ -250,7 +291,7 @@ function buildStories() {
   c.onclick = openBox; box.appendChild(c);
   PAGES.forEach((p) => {
     const b = document.createElement("button");
-    b.className = "st"; b.setAttribute("aria-pressed", p.id === curPage);
+    b.className = "st"; b.dataset.page = p.id; b.setAttribute("aria-pressed", p.id === curPage);
     b.style.background = "linear-gradient(160deg," + p.color + "," + darker(p.color) + ")";
     b.innerHTML = '<div class="av sa"></div><div class="sn"></div>';
     b.querySelector(".sa").textContent = p.short;
@@ -258,6 +299,28 @@ function buildStories() {
     b.onclick = () => { curPage = curPage === p.id ? "all" : p.id; buildStories(); render(); };
     box.appendChild(b);
   });
+  paintStories();
+}
+
+/* صور القصص: آخر صورة متوفرة من كل صفحة (والألوان بتضل احتياطي إذا ما في صورة أو ما في نت) */
+let storyImg = {};
+try { storyImg = JSON.parse(store.get("storyimg", "{}")); } catch { storyImg = {}; }
+function paintStories() {
+  document.querySelectorAll(".st[data-page]").forEach((b) => {
+    const pg = pageById[b.dataset.page], u = storyImg[b.dataset.page];
+    const base = "linear-gradient(160deg," + pg.color + "," + darker(pg.color) + ")";
+    b.style.background = u ? 'linear-gradient(0deg,rgba(0,0,0,.72),rgba(0,0,0,0) 55%), url("' + u + '") center/cover, ' + base : base;
+  });
+}
+function updateStoryImages() {
+  const best = {};
+  Object.values(cache).flat().forEach((it) => {
+    const u = it.img || (it.vid ? "https://i.ytimg.com/vi/" + it.vid + "/hqdefault.jpg" : "");
+    if (u && (!best[it.page] || it.date > best[it.page].date)) best[it.page] = { u, date: it.date };
+  });
+  for (const k in best) storyImg[k] = best[k].u;
+  store.set("storyimg", JSON.stringify(storyImg));
+  paintStories();
 }
 
 /* أدوات */
@@ -300,10 +363,26 @@ async function viaAllOrigins(url) {
     return { title: g(el, "title"), desc, link: g(el, "link") || (lk ? lk.getAttribute("href") : ""), pub: g(el, "pubDate") || g(el, "published"), img: (enc && enc.getAttribute("url")) || (th && th.getAttribute("url")) || firstImg(desc) || firstImg(g(el, "content:encoded")) };
   });
 }
+/* حفظ آخر أخبار عالجهاز لتظهر بدون إنترنت */
+const KEEP = "feed:";
+let offlineNote = false;
+function saveFeed(url, items) { try { localStorage.setItem(KEEP + url, JSON.stringify(items.slice(0, 40))); } catch {} }
+function readFeed(url) {
+  try { const t = localStorage.getItem(KEEP + url); if (!t) return null; return JSON.parse(t).map((i) => ({ ...i, date: new Date(i.date) })); }
+  catch { return null; }
+}
 async function loadFeed(f) {
   if (cache[f.url]) return cache[f.url];
   let raw;
-  try { raw = await viaRss2Json(f.url); } catch { raw = await viaAllOrigins(f.url); }
+  try { raw = await viaRss2Json(f.url); }
+  catch {
+    try { raw = await viaAllOrigins(f.url); }
+    catch (e) {
+      const old = readFeed(f.url);
+      if (old) { offlineNote = true; cache[f.url] = old; return old; }
+      throw e;
+    }
+  }
   const items = raw.map((it) => {
     let title = clean(it.title), summary = clean(it.desc).slice(0, 180);
     if (f.gn) { title = title.replace(/\s+-\s+[^-]+$/, ""); summary = ""; }
@@ -313,6 +392,7 @@ async function loadFeed(f) {
              cat: f.cat !== "news" ? f.cat : classify(title + " " + summary) };
   });
   cache[f.url] = items;
+  saveFeed(f.url, items);
   return items;
 }
 
@@ -339,10 +419,6 @@ function drawComments(a, link) {
     box.appendChild(d);
   });
 }
-function applySearch() {
-  const q = $("sq").value.trim();
-  document.querySelectorAll("#list article").forEach((a) => { a.style.display = (!q || (a.dataset.txt || "").includes(q)) ? "" : "none"; });
-}
 
 /* بطاقة المنشور */
 function buildCard(it, onHide) {
@@ -356,8 +432,8 @@ function buildCard(it, onHide) {
     '<div class="actions"><button class="like"></button><button class="cmt">' + svg("cmt") + '<span>تعليق</span></button><button class="shr">' + svg("share") + '<span>مشاركة</span></button></div>' +
     '<div class="react-pick"></div>' +
     '<div class="comments"><div class="cm-list"></div><div class="cm-form"><input type="text" placeholder="اكتب تعليقاً…" aria-label="تعليق"><button>نشر</button></div></div>';
-  const av = a.querySelector(".av"); av.style.background = pg.color; av.textContent = pg.short.slice(0, 3);
-  a.querySelector(".name").textContent = pg.name;
+  const av = a.querySelector(".av"); av.style.background = pg.color; av.textContent = it.by ? it.by.trim().charAt(0) : pg.short.slice(0, 3);
+  a.querySelector(".name").textContent = it.by || pg.name;
   a.querySelector(".when span").textContent = ago(it.date) + (it.topic ? " · " + it.topic : "");
 
   const media = a.querySelector(".media"), text = a.querySelector(".text");
@@ -366,7 +442,7 @@ function buildCard(it, onHide) {
     text.textContent = it.title;
     const box = document.createElement("div"); box.className = "vid";
     box.innerHTML = '<img alt=""><div class="play">▶</div>';
-    box.querySelector("img").src = "https://i.ytimg.com/vi/" + it.vid + "/hqdefault.jpg";
+    const vi = box.querySelector("img"); vi.onerror = () => { vi.style.visibility = "hidden"; vi.style.height = "200px"; }; vi.src = "https://i.ytimg.com/vi/" + it.vid + "/hqdefault.jpg";
     play = () => {
       const f = document.createElement("iframe");
       f.src = "https://www.youtube-nocookie.com/embed/" + it.vid + "?autoplay=1&rel=0&playsinline=1";
@@ -374,6 +450,9 @@ function buildCard(it, onHide) {
       box.innerHTML = ""; box.onclick = null; box.style.cursor = "default"; box.appendChild(f);
     };
     box.onclick = play; media.appendChild(box);
+  } else if (it.plain) {
+    text.textContent = it.summary;
+    if (it.img) { const im = document.createElement("img"); im.className = "pic"; im.alt = ""; im.loading = "lazy"; im.src = it.img; im.onerror = () => im.remove(); media.appendChild(im); }
   } else {
     text.textContent = it.summary;
     const lp = document.createElement("div"); lp.className = "lp"; lp.tabIndex = 0; lp.setAttribute("role", "link");
@@ -386,7 +465,7 @@ function buildCard(it, onHide) {
     media.appendChild(lp);
   }
 
-  a.querySelector(".more").onclick = async () => { try { await navigator.clipboard.writeText(it.link); toast("تم نسخ الرابط"); } catch { toast("تعذر النسخ"); } };
+  a.querySelector(".more").onclick = async () => { try { await navigator.clipboard.writeText(it.plain ? it.summary : it.link); toast("تم النسخ"); } catch { toast("تعذر النسخ"); } };
   a.querySelector(".x").onclick = () => { (state.hidden = state.hidden || {})[it.link] = 1; save(); a.remove(); };
 
   const pick = a.querySelector(".react-pick");
@@ -427,9 +506,7 @@ function openBox() { $("cbox").classList.add("show"); window.scrollTo({ top: 0, 
 $("meav").textContent = USER_NAME.trim().charAt(0);
 $("openbox").textContent = "شو عم يدور ببالك يا " + USER_NAME.split(" ")[0] + "؟";
 $("openbox").onclick = openBox; $("photo").onclick = openBox; $("bplus").onclick = openBox;
-$("bsearch").onclick = () => { $("sbar").classList.toggle("show"); if ($("sbar").classList.contains("show")) $("sq").focus(); else { $("sq").value = ""; applySearch(); } };
 $("bmsg").onclick = () => toast("ما في رسائل جديدة");
-$("sq").addEventListener("input", applySearch);
 $("cpost").onclick = () => {
   const t = $("ctext").value.trim(); if (!t) return;
   (state.posts = state.posts || []).unshift({ t, d: Date.now() }); save();
@@ -449,30 +526,130 @@ function minePosts() {
   });
 }
 
+/* ===== منشورات العيلة (من ملف family.json) والنصائح اليومية ===== */
+function localDate(s) {
+  if (!s) return new Date();
+  const d = new Date(String(s).replace(" ", "T"));
+  return isNaN(d) ? new Date() : d;
+}
+async function loadFamily() {
+  let arr = null;
+  try { const r = await fetch("family.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) arr = await r.json(); } catch {}
+  if (Array.isArray(arr)) store.set("family", JSON.stringify(arr));
+  else { try { arr = JSON.parse(store.get("family", "[]")); } catch { arr = []; } }
+  const withImg = arr.slice().sort((a, b) => localDate(b.date) - localDate(a.date)).find((p) => p.image);
+  if (withImg) storyImg.fam = withImg.image;
+  return arr.map((p, i) => ({
+    page: "fam", plain: true, pin: 1, by: p.by || "", summary: String(p.text || ""), title: String(p.text || "").slice(0, 60),
+    img: p.image || "", date: localDate(p.date), link: "fam:" + (p.date || "") + ":" + i, cat: "all"
+  })).sort((a, b) => b.date - a.date);
+}
+function tipItem(k) {
+  const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000) - k;
+  const idx = ((day % TIPS.length) + TIPS.length) % TIPS.length;
+  const d = new Date(); d.setHours(8, 0, 0, 0); d.setDate(d.getDate() - k);
+  return { page: "tip", plain: true, pin: 2, by: "", summary: "نصيحة اليوم: " + TIPS[idx], title: TIPS[idx].slice(0, 60), img: "", date: d, link: "tip:" + day, cat: "all" };
+}
+async function extras() {
+  const out = [];
+  if (curCat !== "all") return out;
+  if (curPage === "all") { out.push(...(await loadFamily()).slice(0, 5)); out.push(tipItem(0)); }
+  else if (curPage === "fam") out.push(...(await loadFamily()).slice(0, 30));
+  else if (curPage === "tip") for (let k = 0; k < 5; k++) out.push(tipItem(k));
+  return out;
+}
+
+/* ===== الطقس ومواعيد الصلاة والأسعار ===== */
+async function withSaved(key, fn) {
+  try { const v = await fn(); store.set("w:" + key, JSON.stringify({ t: Date.now(), v })); return { v, stale: false }; }
+  catch { try { const o = JSON.parse(store.get("w:" + key, "null")); if (o) return { v: o.v, stale: true, t: o.t }; } catch {} return null; }
+}
+const WCODE = (c) => c === 0 ? ["☀️","صافي"] : c <= 2 ? ["🌤️","غائم جزئياً"] : c === 3 ? ["☁️","غائم"] : c <= 48 ? ["🌫️","ضباب"] : c <= 57 ? ["🌦️","رذاذ"] : c <= 67 ? ["🌧️","مطر"] : c <= 77 ? ["❄️","ثلج"] : c <= 82 ? ["🌧️","زخات مطر"] : ["⛈️","عاصفة رعدية"];
+const getWeather = () => withSaved("weather", async () => {
+  const [lat, lon] = CITIES[CITY] || CITIES["دمشق"];
+  const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1");
+  const j = await r.json();
+  return { t: Math.round(j.current.temperature_2m), code: j.current.weather_code, max: Math.round(j.daily.temperature_2m_max[0]), min: Math.round(j.daily.temperature_2m_min[0]) };
+});
+const getPrayer = () => withSaved("prayer", async () => {
+  const [lat, lon] = CITIES[CITY] || CITIES["دمشق"];
+  const r = await fetch("https://api.aladhan.com/v1/timings?latitude=" + lat + "&longitude=" + lon + "&method=3");
+  const j = await r.json(); const t = j.data.timings; const c = (x) => String(x).slice(0, 5);
+  return { Fajr: c(t.Fajr), Dhuhr: c(t.Dhuhr), Asr: c(t.Asr), Maghrib: c(t.Maghrib), Isha: c(t.Isha) };
+});
+const getPrices = () => withSaved("prices", async () => {
+  const out = {};
+  try { const r = await fetch("prices.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) out.manual = await r.json(); } catch {}
+  try { const r = await fetch("https://open.er-api.com/v6/latest/USD"); const j = await r.json(); if (j.rates && j.rates.SYP) out.syp = j.rates.SYP; if (j.rates && j.rates.XAU) out.xau = 1 / j.rates.XAU; } catch {}
+  try { const r = await fetch("https://api.gold-api.com/price/XAU"); const j = await r.json(); if (j.price) out.xau = j.price; } catch {}
+  if (!out.manual && !out.syp && !out.xau) throw new Error("prices");
+  return out;
+});
+const n0 = (x) => Math.round(x).toLocaleString("en-US");
+const t12 = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return ((h % 12) || 12) + ":" + String(m).padStart(2, "0"); };
+
+function buildWidgets() {
+  const el = document.createElement("div"); el.className = "wcard";
+  el.innerHTML = '<div class="wrow w1"></div><div class="wrow w2"></div><div class="wrow w3"></div>';
+  getWeather().then((w) => {
+    if (!w) return; const v = w.v, [ic, nm] = WCODE(v.code);
+    el.querySelector(".w1").innerHTML = '<div class="wtop"><div class="big"></div><div><b></b><br><span></span></div></div>';
+    el.querySelector(".big").textContent = ic;
+    el.querySelector("b").textContent = CITY + " · " + v.t + "°";
+    el.querySelector(".wtop span").textContent = nm + " · العظمى " + v.max + "° والصغرى " + v.min + "°";
+  });
+  getPrayer().then((p) => {
+    if (!p) return; const v = p.v;
+    const list = [["الفجر", v.Fajr], ["الظهر", v.Dhuhr], ["العصر", v.Asr], ["المغرب", v.Maghrib], ["العشاء", v.Isha]];
+    const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+    let next = list.findIndex(([, t]) => { const [h, m] = t.split(":").map(Number); return h * 60 + m > nowM; }); if (next < 0) next = 0;
+    const box = el.querySelector(".w2"); box.innerHTML = '<div class="wlabel">مواعيد الصلاة</div><div class="chips"></div>';
+    list.forEach(([nm, t], i) => { const c = document.createElement("div"); c.className = "chip" + (i === next ? " next" : ""); c.innerHTML = "<small></small><b></b>"; c.querySelector("small").textContent = nm; c.querySelector("b").textContent = t12(t); box.querySelector(".chips").appendChild(c); });
+  });
+  getPrices().then((p) => {
+    if (!p) return; const v = p.v, m = v.manual || {}, cells = [];
+    if (m.usd_syp) cells.push(["الدولار", n0(m.usd_syp) + " ل.س"]);
+    else if (v.syp) cells.push(["الدولار (سعر رسمي)", n0(v.syp) + " ل.س"]);
+    if (m.gold21_syp) cells.push(["غرام الذهب عيار 21", n0(m.gold21_syp) + " ل.س"]);
+    else if (v.xau) cells.push(["غرام الذهب 21 (عالمي)", "$" + n0(v.xau / 31.1035 * 0.875)]);
+    if (!cells.length) return;
+    const box = el.querySelector(".w3"); box.innerHTML = '<div class="prices"></div><div class="wnote"></div>';
+    cells.forEach(([l, val]) => { const d = document.createElement("div"); d.innerHTML = "<small></small><b></b>"; d.querySelector("small").textContent = l; d.querySelector("b").textContent = val; box.querySelector(".prices").appendChild(d); });
+    box.querySelector(".wnote").textContent = m.date ? "آخر تحديث: " + m.date : "الأسعار تقريبية، تأكد من السوق";
+  });
+  return el;
+}
+
 async function render() {
   const list = $("list");
   list.innerHTML = '<div class="state">جارٍ التحميل…</div>';
   const feeds = FEEDS.filter((f) => (curPage === "all" || f.page === curPage) && (curCat === "all" || f.cat === curCat || f.cat === "news"));
   const results = await Promise.allSettled(feeds.map(loadFeed));
-  let items = results.filter((r) => r.status === "fulfilled").flatMap((r) => r.value);
+  let items = results.filter((r) => r.status === "fulfilled").flatMap((r) => r.value).concat(await extras());
+  const allFailed = results.length > 0 && results.every((r) => r.status === "rejected");
+  if (offlineNote) { offlineNote = false; toast("ما في إنترنت، عم نعرض آخر أخبار محفوظة"); }
 
   const seen = new Set(), hidden = state.hidden || {};
   items = items.filter((it) => curCat === "all" || it.cat === curCat)
                .filter((it) => it.link && !hidden[it.link] && !seen.has(it.link) && seen.add(it.link))
                .filter((it) => !seen.has("t:" + it.title) && seen.add("t:" + it.title))
                .sort((a, b) => b.date - a.date);
+  const pinned = items.filter((i) => i.pin).sort((a, b) => a.pin - b.pin || b.date - a.date);
+  items = [...pinned, ...items.filter((i) => !i.pin)];
 
   if (!items.length) {
-    const failed = results.every((r) => r.status === "rejected");
+    const failed = allFailed;
     list.innerHTML = '<div class="state">' + (failed ? "ما قدرنا نتصل بالإنترنت.<br>تأكد من الاتصال وجرب مرة تانية." : "ما في منشورات هلق.") + '<br><button class="retry" id="retry">إعادة المحاولة</button></div>';
     $("retry").onclick = () => { Object.keys(cache).forEach((k) => delete cache[k]); render(); };
     return;
   }
 
   list.innerHTML = "";
+  if (curCat === "all" && curPage === "all") list.appendChild(buildWidgets());
   if (curCat === "all" && curPage === "all") minePosts().forEach((n) => list.appendChild(n));
   const footerEl = document.createElement("div");
   list.appendChild(footerEl);
+  if (allFailed) { const w = document.createElement("div"); w.className = "state"; w.innerHTML = "ما قدرنا نجيب أخبار جديدة هلق."; list.insertBefore(w, footerEl); }
   let idx = 0;
   const showMore = () => {
     items.slice(idx, idx + MAX_ITEMS).forEach((it) => list.insertBefore(buildCard(it), footerEl));
@@ -483,9 +660,9 @@ async function render() {
     } else {
       footerEl.className = "caught"; footerEl.innerHTML = svg("check") + "لقد شاهدت كل المنشورات الجديدة";
     }
-    applySearch();
   };
   showMore();
+  updateStoryImages();
 }
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
