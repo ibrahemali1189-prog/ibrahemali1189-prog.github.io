@@ -18,14 +18,15 @@
   button { font:inherit; color:inherit; }
   button:focus-visible, .lp:focus-visible, input:focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
 
-  header { background:var(--card); position:sticky; top:0; z-index:10; }
+  header { background:var(--card); position:sticky; top:0; z-index:10; transition:transform .25s ease; }
+  header.hide { transform:translateY(-56px); }
   .bar { height:56px; padding:0 12px; display:flex; align-items:center; justify-content:space-between; }
   .logo { color:var(--blue); font-weight:800; font-size:1.75em; letter-spacing:-.5px; line-height:1; }
   .tools { display:flex; gap:8px; }
   .tools button { width:40px; height:40px; border:0; border-radius:50%; background:var(--soft); display:flex; align-items:center; justify-content:center; cursor:pointer; }
   .tabs { display:flex; border-bottom:1px solid var(--line); }
   .tabs button { flex:1; height:50px; border:0; border-bottom:3px solid transparent; background:none; color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .tabs button svg { width:27px; height:27px; }
+  .tabs button svg { width:24px; height:24px; }
   .tabs button[aria-pressed="true"] { color:var(--blue); border-bottom-color:var(--blue); }
   .tabs button[aria-pressed="true"] svg { fill:currentColor; fill-opacity:.15; }
   .sbar { display:none; padding:8px 12px; background:var(--card); border-bottom:1px solid var(--line); }
@@ -124,33 +125,21 @@
   .prices b { font-size:.95em; }
   .wnote { color:var(--muted); font-size:.68em; margin-top:4px; }
   article img.pic { display:block; width:100%; max-height:360px; object-fit:cover; background:var(--line); }
-  .medbar { display:none; align-items:center; gap:8px; background:#E65100; color:#fff; padding:8px 12px; }
-  .medbar .mt { flex:1; font-weight:700; font-size:.92em; line-height:1.35; }
-  .medbar button { height:38px; padding:0 12px; border:0; border-radius:19px; font-weight:700; cursor:pointer; background:#fff; color:#E65100; }
-  .medbar .b2 { background:rgba(255,255,255,.25); color:#fff; }
-  .dose { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:.92em; }
-  .dose:last-child { border-bottom:0; }
-  .dose .dt { min-width:70px; font-weight:700; }
-  .dose .dn { flex:1; } .dose .dn small { color:var(--muted); }
-  .dose.done { opacity:.55; } .dose.late .dt { color:#E65100; }
-  .dose button { height:34px; padding:0 14px; border:0; border-radius:17px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
-  .medmanage { margin-top:6px; height:36px; padding:0 14px; border:0; border-radius:18px; background:var(--soft); color:var(--ink); font-weight:600; cursor:pointer; }
-  .ov { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
-  .sheet { width:100%; max-width:560px; max-height:90vh; overflow:auto; background:var(--card); border-radius:16px 16px 0 0; padding:16px; }
-  .sheet h3 { margin:0 0 8px; }
-  .sheet .note { color:var(--muted); font-size:.78em; margin:0 0 10px; }
-  .sheet input[type=text], .sheet input[type=time] { width:100%; height:42px; border:1px solid var(--line); border-radius:10px; padding:0 12px; background:var(--bg); color:var(--ink); font:inherit; margin-bottom:8px; }
-  .sheet .times { display:flex; gap:8px; } .sheet .times input { flex:1; }
-  .sheet .btn { width:100%; height:44px; border:0; border-radius:10px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; margin-top:4px; }
-  .sheet .btn.alt { background:var(--soft); color:var(--ink); }
-  .mitem { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); font-size:.92em; }
-  .mitem .mi { flex:1; } .mitem small { color:var(--muted); display:block; }
-  .mitem button { height:34px; padding:0 12px; border:0; border-radius:17px; background:#C62828; color:#fff; font-weight:700; cursor:pointer; }
+  .sk { background:var(--card); margin-bottom:8px; padding:14px 12px; }
+  .sk i { display:block; background:var(--soft); border-radius:8px; margin-bottom:10px; animation:pulse 1.2s ease-in-out infinite; }
+  .sk .r1 { display:flex; gap:10px; align-items:center; margin-bottom:12px; } .sk .r1 i:first-child { width:40px; height:40px; border-radius:50%; margin:0; } .sk .r1 i:last-child { width:40%; height:14px; margin:0; }
+  .sk .l1 { height:14px; width:92%; } .sk .l2 { height:14px; width:70%; } .sk .l3 { height:160px; border-radius:0; margin:12px -12px 0; }
+  @keyframes pulse { 50% { opacity:.5; } }
+  .clamp { display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
+  .seemore { border:0; background:none; color:var(--muted); font-weight:700; padding:0 12px 8px; font-size:.9em; cursor:pointer; }
+  .vid.reelbox { aspect-ratio:9/16; max-height:78vh; margin:0 auto; }
+  .vid.reelbox img { width:100%; height:100%; max-height:none; object-fit:cover; }
+  .vid.reelbox iframe { width:100%; height:100%; aspect-ratio:auto; }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:.85em; display:none; z-index:30; }
 </style>
 </head>
 <body>
-<header>
+<header id="hdr">
   <div class="bar">
     <div class="logo">فيس بوك</div>
     <div class="tools">
@@ -159,7 +148,6 @@
     </div>
   </div>
   <nav class="tabs" id="cats" aria-label="الأقسام"></nav>
-  <div class="medbar" id="medbar"></div>
 </header>
 
 <main>
@@ -258,7 +246,11 @@ const OLIVE_TIPS = [
   "زيت الزيتون البكر جزء أساسي من الحمية المتوسطية المعروفة بفوائدها لصحة القلب، والأفضل استعماله باعتدال ضمن غذاء متوازن.",
   "الزيتون غني بالدهون الأحادية غير المشبعة ومضادات الأكسدة، وزيت الزيتون البكر الممتاز بيحافظ على معظمها لأنو ما بيتعرض لمعالجة كيماوية."
 ];
+const REELS_PER_DAY = 10;   /* عدد الريلز باليوم، وبعدها بتخلص */
+const SHORTS = (ch) => "https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH" + ch.slice(2);   /* قائمة الشورتس لأي قناة */
 const PAGES = [
+  { id:"wxn",  name:"طقس بلاد الشام", short:"طقس", color:"#0288D1" },
+  { id:"ywx",  name:"الراصد الجوي", short:"طقس", color:"#0277BD" },
   { id:"sohr", name:"المرصد السوري", short:"مرصد", color:"#37474F" },
   { id:"oliv", name:"الزيتون",  short:"زت",  color:"#6B8E23" },
   { id:"jad",  name:"الجديد",   short:"جد",  color:"#C2185B" },
@@ -306,11 +298,21 @@ const FEEDS = [
   { page:"sky",  cat:"fun",   gn:true, url:GN("site:skynewsarabia.com (فن OR مسلسل OR فنان OR منوعات) when:7d") },
   { page:"sohr", cat:"news", url:"https://www.syriahr.com/feed/" },
   { page:"sohr", cat:"news", gn:true, url:GN("site:syriahr.com when:3d") },
+  { page:"wxn",  cat:"news", gn:true, url:GN("طقس سوريا الأرصاد الجوية when:2d") },
+  { page:"wxn",  cat:"news", gn:true, url:GN("طقس لبنان when:2d") },
+  { page:"wxn",  cat:"news", gn:true, url:GN("طقس الأردن when:2d") },
+  { page:"wxn",  cat:"news", gn:true, url:GN("site:arabiaweather.com when:2d") },
   { page:"jad",  cat:"news", gn:true, url:GN("site:aljadeed.tv when:2d") },
   { page:"mtv",  cat:"news", gn:true, url:GN("site:mtv.com.lb when:2d") },
   { page:"may",  cat:"news", gn:true, url:GN("site:almayadeen.net when:2d") },
   { page:"oliv", cat:"agri", gn:true, url:GN("(تقليم OR تسميد OR قطاف OR موسم OR فوائد) الزيتون when:30d") },
   { page:"oliv", cat:"agri", gn:true, url:GN("زراعة الزيتون سوريا when:30d") },
+  /* ريلز (فيديوهات قصيرة): صحة وزراعة وطقس. الروابط غير مؤكدة، إذا قناة ما طلع منها شي بدّل رقمها أو احذف سطرها */
+  { page:"ymed",  cat:"reel", topic:"صحة",   url:SHORTS("UCKBG2SimGyaghfY2HDGwwYA") },
+  { page:"ydr",   cat:"reel", topic:"صحة",   url:SHORTS("UC4of8xqL-SpDvTdOrRzS4sw") },
+  { page:"yagr",  cat:"reel", topic:"زراعة", url:SHORTS("UCPiQ1hI6sbUy8kORlhH1-nA") },
+  { page:"yroof", cat:"reel", topic:"زراعة", url:SHORTS("UCH7J2SnSflgT66kdWmZascw") },
+  { page:"ywx",   cat:"reel", topic:"طقس",   url:SHORTS("UCU0MQ4Oke25KSmDc26rY5lw") },
   /* قنوات يوتيوب: الرابط فيه channel_id، بدّله بأي قناة بدك ياها */
   { page:"yagr",  cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCPiQ1hI6sbUy8kORlhH1-nA" },
   { page:"yroof", cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCH7J2SnSflgT66kdWmZascw" },
@@ -338,6 +340,7 @@ const IC = {
   sport: '<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/>',
   health:'<path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"/>',
   video: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/>',
+  reel:  '<rect x="6" y="3" width="12" height="18" rx="3"/><path d="M10.5 9.5l4 2.5-4 2.5z"/>',
   agri:  '<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8"/>',
   fun:   '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/>',
   like:  '<path d="M7 10v10H4V10zM7 10l4-7c2 0 3 1 2.5 3L13 9h6a2 2 0 0 1 2 2.4l-1.3 7A2 2 0 0 1 17.7 20H7"/>',
@@ -356,6 +359,7 @@ const store = {
 let state = {};
 try { state = JSON.parse(store.get("state", "{}")); } catch { state = {}; }
 const save = () => store.set("state", JSON.stringify(state));
+if (state.meds || state.taken) { delete state.meds; delete state.taken; save(); }
 
 /* الوضع الليلي تلقائي حسب إعدادات الموبايل مثل التطبيق الحقيقي */
 const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
@@ -367,7 +371,7 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display
 /* الأقسام (أيقونات فقط مثل فيس) */
 function buildCats() {
   const box = $("cats"); box.innerHTML = "";
-  [["all","home","الرئيسية"],["news","news","أخبار"],["sport","sport","رياضة"],["health","health","صحة"],["video","video","فيديو"],["fun","fun","تسلية"],["agri","agri","زراعة"]].forEach(([id, ic, nm]) => {
+  [["all","home","الرئيسية"],["news","news","أخبار"],["sport","sport","رياضة"],["health","health","صحة"],["video","video","فيديو"],["fun","fun","تسلية"],["agri","agri","زراعة"],["reel","reel","ريلز"]].forEach(([id, ic, nm]) => {
     const b = document.createElement("button");
     b.setAttribute("aria-pressed", id === curCat); b.setAttribute("aria-label", nm);
     b.innerHTML = svg(ic).replace('class="ic"', 'class="ic"');
@@ -483,9 +487,9 @@ async function loadFeed(f) {
     let title = clean(it.title), summary = clean(it.desc).slice(0, 180);
     let src = "";
     if (f.gn) { const m = /\s+-\s+([^-]+)$/.exec(title); if (m) src = m[1].trim(); title = title.replace(/\s+-\s+[^-]+$/, ""); summary = ""; }
-    const vm = /(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/.exec(it.link || "");
+    const vm = /(?:v=|\/embed\/|youtu\.be\/|\/shorts\/)([\w-]{11})/.exec(it.link || "");
     return { page: f.page, src, title, summary, link: it.link, img: it.img || "", date: parseDate(it.pub),
-             vid: f.cat === "video" && vm ? vm[1] : "", topic: f.topic || "",
+             vid: (f.cat === "video" || f.cat === "reel") && vm ? vm[1] : "", reel: f.cat === "reel", topic: f.topic || "",
              cat: f.cat !== "news" ? f.cat : classify(title + " " + summary) };
   });
   cache[f.url] = items;
@@ -537,7 +541,7 @@ function buildCard(it, onHide) {
   let play = null;
   if (it.vid) {
     text.textContent = it.title;
-    const box = document.createElement("div"); box.className = "vid";
+    const box = document.createElement("div"); box.className = "vid" + (it.reel ? " reelbox" : "");
     box.innerHTML = '<img alt=""><div class="play">▶</div>';
     const vi = box.querySelector("img"); vi.onerror = () => { vi.style.visibility = "hidden"; vi.style.height = "200px"; }; vi.src = "https://i.ytimg.com/vi/" + it.vid + "/hqdefault.jpg";
     play = () => {
@@ -562,6 +566,12 @@ function buildCard(it, onHide) {
     media.appendChild(lp);
   }
 
+  if (text.textContent.length > 200) {
+    text.classList.add("clamp");
+    const mb = document.createElement("button"); mb.className = "seemore"; mb.textContent = "عرض المزيد";
+    mb.onclick = () => { text.classList.remove("clamp"); mb.remove(); };
+    text.after(mb);
+  }
   a.querySelector(".more").onclick = async () => { try { await navigator.clipboard.writeText(it.plain ? it.summary : it.link); toast("تم النسخ"); } catch { toast("تعذر النسخ"); } };
   a.querySelector(".x").onclick = () => { (state.hidden = state.hidden || {})[it.link] = 1; save(); a.remove(); };
 
@@ -673,98 +683,6 @@ async function extras() {
   return out;
 }
 
-/* ===== مواعيد الدواء (بتنحفظ عالجهاز بس، مو على الإنترنت) ===== */
-const apm = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return ((h % 12) || 12) + ":" + String(m).padStart(2, "0") + (h < 12 ? " ص" : " م"); };
-const dayKey = () => { const d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); };
-const nowHM = () => { const d = new Date(); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
-const snoozed = {}, alerted = new Set();
-function todaysDoses() {
-  const taken = (state.taken || {})[dayKey()] || {}, out = [];
-  (state.meds || []).forEach((m) => m.times.forEach((t) => out.push({ m, t, key: m.id + "|" + t, done: !!taken[m.id + "|" + t] })));
-  return out.sort((a, b) => a.t.localeCompare(b.t));
-}
-function markTaken(key) {
-  const k = dayKey(); state.taken = state.taken || {};
-  Object.keys(state.taken).forEach((d) => { if (d !== k) delete state.taken[d]; });
-  (state.taken[k] = state.taken[k] || {})[key] = true; save(); refreshMeds();
-}
-function notifyDue() {
-  try { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); } catch {}
-  try {
-    if ("Notification" in window && Notification.permission === "granted") {
-      navigator.serviceWorker.getRegistration().then((r) => r ? r.showNotification("فيس بوك", { body: "حان موعد الدواء 💊", icon: "icon-192.png" }) : new Notification("فيس بوك", { body: "حان موعد الدواء 💊" }));
-    }
-  } catch {}
-}
-function refreshMeds() {
-  const ds = todaysDoses(), now = nowHM(), bar = $("medbar");
-  const due = ds.filter((d) => !d.done && d.t <= now && !(snoozed[d.key] > Date.now()));
-  if (due.length) {
-    const d = due[0];
-    bar.style.display = "flex";
-    bar.innerHTML = '<div class="mt"></div><button class="b1">أخذته ✓</button><button class="b2">بعد 15 د</button>';
-    bar.querySelector(".mt").textContent = "💊 حان موعد الدواء: " + d.m.name + (d.m.note ? " (" + d.m.note + ")" : "") + (due.length > 1 ? " + " + (due.length - 1) : "");
-    bar.querySelector(".b1").onclick = () => markTaken(d.key);
-    bar.querySelector(".b2").onclick = () => { snoozed[d.key] = Date.now() + 15 * 60000; alerted.delete(d.key + dayKey()); refreshMeds(); };
-    const ak = d.key + dayKey();
-    if (!alerted.has(ak)) { alerted.add(ak); toast("💊 حان موعد الدواء"); notifyDue(); }
-  } else { bar.style.display = "none"; bar.innerHTML = ""; }
-
-  const row = document.querySelector(".w0");
-  if (!row) return;
-  row.innerHTML = '<div class="wlabel">💊 أدوية اليوم</div><div class="doses"></div><button class="medmanage"></button>';
-  const box = row.querySelector(".doses");
-  ds.forEach((d) => {
-    const el = document.createElement("div");
-    el.className = "dose" + (d.done ? " done" : d.t <= now ? " late" : "");
-    el.innerHTML = '<span class="dt"></span><span class="dn"></span>';
-    el.querySelector(".dt").textContent = apm(d.t);
-    el.querySelector(".dn").innerHTML = "<span></span> <small></small>";
-    el.querySelector(".dn span").textContent = d.m.name; el.querySelector(".dn small").textContent = d.m.note || "";
-    if (d.done) { const ok = document.createElement("span"); ok.textContent = "✓ تم"; el.appendChild(ok); }
-    else { const b = document.createElement("button"); b.textContent = "أخذته"; b.onclick = () => markTaken(d.key); el.appendChild(b); }
-    box.appendChild(el);
-  });
-  const mm = row.querySelector(".medmanage");
-  mm.textContent = ds.length ? "تعديل الأدوية" : "💊 إضافة مواعيد الدواء";
-  mm.onclick = openMeds;
-}
-function openMeds() {
-  const ov = document.createElement("div"); ov.className = "ov";
-  ov.innerHTML = '<div class="sheet"><h3>💊 مواعيد الدواء</h3><p class="note">الأدوية بتنحفظ على هالجهاز بس، وما بتنرفع على الإنترنت.</p><div class="mlist"></div>' +
-    '<h3 style="margin-top:14px;font-size:1em">إضافة دواء</h3><input type="text" class="mn" placeholder="اسم الدواء" aria-label="اسم الدواء">' +
-    '<div class="times"><input type="time" aria-label="الموعد الأول"><input type="time" aria-label="الموعد الثاني"><input type="time" aria-label="الموعد الثالث"></div>' +
-    '<input type="text" class="mo" placeholder="ملاحظة (مثلاً: بعد الأكل)" aria-label="ملاحظة"><button class="btn add">إضافة</button>' +
-    '<button class="btn alt notif">تفعيل تنبيهات الجهاز</button><button class="btn alt close">إغلاق</button></div>';
-  const draw = () => {
-    const box = ov.querySelector(".mlist"); box.innerHTML = "";
-    (state.meds || []).forEach((m) => {
-      const it = document.createElement("div"); it.className = "mitem";
-      it.innerHTML = '<div class="mi"><b></b><small></small></div><button>حذف</button>';
-      it.querySelector("b").textContent = m.name;
-      it.querySelector("small").textContent = m.times.map(apm).join(" ، ") + (m.note ? " · " + m.note : "");
-      it.querySelector("button").onclick = () => { if (confirm("حذف " + m.name + "؟")) { state.meds = state.meds.filter((x) => x.id !== m.id); save(); draw(); refreshMeds(); } };
-      box.appendChild(it);
-    });
-  };
-  ov.querySelector(".add").onclick = () => {
-    const name = ov.querySelector(".mn").value.trim();
-    const times = [...ov.querySelectorAll('input[type=time]')].map((i) => i.value).filter(Boolean).sort();
-    if (!name || !times.length) { toast("اكتب اسم الدواء واختار موعد واحد على الأقل"); return; }
-    (state.meds = state.meds || []).push({ id: Date.now().toString(36), name, times, note: ov.querySelector(".mo").value.trim() });
-    save(); ov.querySelector(".mn").value = ""; ov.querySelector(".mo").value = ""; ov.querySelectorAll('input[type=time]').forEach((i) => i.value = "");
-    draw(); refreshMeds();
-  };
-  ov.querySelector(".notif").onclick = async () => {
-    try { const r = await Notification.requestPermission(); toast(r === "granted" ? "تم تفعيل التنبيهات" : "التنبيهات مو مفعّلة"); } catch { toast("جهازك ما بيدعم التنبيهات هون"); }
-  };
-  ov.querySelector(".close").onclick = () => ov.remove();
-  ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
-  draw(); document.body.appendChild(ov);
-}
-setInterval(refreshMeds, 20000);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshMeds(); });
-
 /* ===== الطقس ومواعيد الصلاة والأسعار ===== */
 async function withSaved(key, fn) {
   try { const v = await fn(); store.set("w:" + key, JSON.stringify({ t: Date.now(), v })); return { v, stale: false }; }
@@ -796,7 +714,7 @@ const t12 = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return ((h %
 
 function buildWidgets() {
   const el = document.createElement("div"); el.className = "wcard";
-  el.innerHTML = '<div class="wrow w0"></div><div class="wrow w1"></div><div class="wrow w2"></div><div class="wrow w3"></div>';
+  el.innerHTML = '<div class="wrow w1"></div><div class="wrow w2"></div><div class="wrow w3"></div>';
   getWeather().then((w) => {
     if (!w) return; const v = w.v, [ic, nm] = WCODE(v.code);
     el.querySelector(".w1").innerHTML = '<div class="wtop"><div class="big"></div><div><b></b><br><span></span></div></div>';
@@ -826,17 +744,21 @@ function buildWidgets() {
   return el;
 }
 
+function skeleton() {
+  const one = '<div class="sk"><div class="r1"><i></i><i></i></div><i class="l1"></i><i class="l2"></i><i class="l3"></i></div>';
+  return one + one;
+}
 async function render() {
   const list = $("list");
-  list.innerHTML = '<div class="state">جارٍ التحميل…</div>';
-  const feeds = FEEDS.filter((f) => (curPage === "all" || f.page === curPage) && (curCat === "all" || f.cat === curCat || f.cat === "news"));
+  list.innerHTML = skeleton();
+  const feeds = FEEDS.filter((f) => (curPage === "all" || f.page === curPage) && (curCat === "reel" ? f.cat === "reel" : f.cat !== "reel" && (curCat === "all" || f.cat === curCat || f.cat === "news")));
   const results = await Promise.allSettled(feeds.map(loadFeed));
   let items = results.filter((r) => r.status === "fulfilled").flatMap((r) => r.value).concat(await extras());
   const allFailed = results.length > 0 && results.every((r) => r.status === "rejected");
   if (offlineNote) { offlineNote = false; toast("ما في إنترنت، عم نعرض آخر أخبار محفوظة"); }
 
   const seen = new Set(), hidden = state.hidden || {};
-  items = items.filter((it) => curCat === "all" || it.cat === curCat)
+  items = items.filter((it) => curCat === "all" ? it.cat !== "reel" : it.cat === curCat)
                .filter((it) => it.link && !hidden[it.link] && !seen.has(it.link) && seen.add(it.link))
                .filter((it) => !seen.has("t:" + it.title) && seen.add("t:" + it.title))
                .sort((a, b) => b.date - a.date);
@@ -846,6 +768,7 @@ async function render() {
   const lists = [...groups.values()], mixed = [];
   for (let i = 0; mixed.length < rest.length; i++) lists.forEach((l) => { if (l[i]) mixed.push(l[i]); });
   items = [...pinned, ...mixed];
+  if (curCat === "reel") items = items.slice(0, REELS_PER_DAY);
 
   if (!items.length) {
     const failed = allFailed;
@@ -855,7 +778,7 @@ async function render() {
   }
 
   list.innerHTML = "";
-  if (curCat === "all" && curPage === "all") { list.appendChild(buildWidgets()); refreshMeds(); }
+  if (curCat === "all" && curPage === "all") list.appendChild(buildWidgets());
   if (curCat === "all" && curPage === "all") minePosts().forEach((n) => list.appendChild(n));
   const footerEl = document.createElement("div");
   list.appendChild(footerEl);
@@ -868,7 +791,7 @@ async function render() {
       footerEl.className = ""; footerEl.innerHTML = '<button class="morebtn" id="more">عرض المزيد</button>';
       footerEl.querySelector("#more").onclick = showMore;
     } else {
-      footerEl.className = "caught"; footerEl.innerHTML = svg("check") + "لقد شاهدت كل المنشورات الجديدة";
+      footerEl.className = "caught"; footerEl.innerHTML = svg("check") + (curCat === "reel" ? "خلصت ريلز اليوم، ارجع بكرا" : "لقد شاهدت كل المنشورات الجديدة");
     }
   };
   showMore();
@@ -876,7 +799,14 @@ async function render() {
 }
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-buildCats(); buildStories(); render(); refreshMeds();
+let lastY = 0;
+window.addEventListener("scroll", () => {
+  const y = window.scrollY, h = $("hdr");
+  if (y > lastY + 8 && y > 80) h.classList.add("hide");
+  else if (y < lastY - 8 || y <= 0) h.classList.remove("hide");
+  lastY = y;
+}, { passive: true });
+buildCats(); buildStories(); render();
 </script>
 </body>
 </html>
