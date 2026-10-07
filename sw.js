@@ -1,4 +1,4 @@
-const C = "fb-news-v8";
+const C = "fb-news-v11";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {

@@ -67,7 +67,7 @@
   .hb { display:flex; }
   .hb button { width:36px; height:36px; border:0; background:none; color:var(--muted); font-size:1.1em; border-radius:50%; cursor:pointer; }
   .hb button:active { background:var(--soft); }
-  .text { padding:2px 12px 10px; font-size:1em; line-height:1.55; }
+  .text { padding:2px 12px 10px; font-size:1em; line-height:1.55; white-space:pre-line; }
   .text:empty { display:none; }
   .lp { cursor:pointer; background:var(--soft); }
   .lp img { display:block; width:100%; max-height:360px; object-fit:cover; background:var(--line); }
@@ -124,6 +124,28 @@
   .prices b { font-size:.95em; }
   .wnote { color:var(--muted); font-size:.68em; margin-top:4px; }
   article img.pic { display:block; width:100%; max-height:360px; object-fit:cover; background:var(--line); }
+  .medbar { display:none; align-items:center; gap:8px; background:#E65100; color:#fff; padding:8px 12px; }
+  .medbar .mt { flex:1; font-weight:700; font-size:.92em; line-height:1.35; }
+  .medbar button { height:38px; padding:0 12px; border:0; border-radius:19px; font-weight:700; cursor:pointer; background:#fff; color:#E65100; }
+  .medbar .b2 { background:rgba(255,255,255,.25); color:#fff; }
+  .dose { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px solid var(--line); font-size:.92em; }
+  .dose:last-child { border-bottom:0; }
+  .dose .dt { min-width:70px; font-weight:700; }
+  .dose .dn { flex:1; } .dose .dn small { color:var(--muted); }
+  .dose.done { opacity:.55; } .dose.late .dt { color:#E65100; }
+  .dose button { height:34px; padding:0 14px; border:0; border-radius:17px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
+  .medmanage { margin-top:6px; height:36px; padding:0 14px; border:0; border-radius:18px; background:var(--soft); color:var(--ink); font-weight:600; cursor:pointer; }
+  .ov { position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:50; display:flex; align-items:flex-end; justify-content:center; }
+  .sheet { width:100%; max-width:560px; max-height:90vh; overflow:auto; background:var(--card); border-radius:16px 16px 0 0; padding:16px; }
+  .sheet h3 { margin:0 0 8px; }
+  .sheet .note { color:var(--muted); font-size:.78em; margin:0 0 10px; }
+  .sheet input[type=text], .sheet input[type=time] { width:100%; height:42px; border:1px solid var(--line); border-radius:10px; padding:0 12px; background:var(--bg); color:var(--ink); font:inherit; margin-bottom:8px; }
+  .sheet .times { display:flex; gap:8px; } .sheet .times input { flex:1; }
+  .sheet .btn { width:100%; height:44px; border:0; border-radius:10px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; margin-top:4px; }
+  .sheet .btn.alt { background:var(--soft); color:var(--ink); }
+  .mitem { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); font-size:.92em; }
+  .mitem .mi { flex:1; } .mitem small { color:var(--muted); display:block; }
+  .mitem button { height:34px; padding:0 12px; border:0; border-radius:17px; background:#C62828; color:#fff; font-weight:700; cursor:pointer; }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:.85em; display:none; z-index:30; }
 </style>
 </head>
@@ -137,6 +159,7 @@
     </div>
   </div>
   <nav class="tabs" id="cats" aria-label="الأقسام"></nav>
+  <div class="medbar" id="medbar"></div>
 </header>
 
 <main>
@@ -154,8 +177,8 @@
 <script>
 /* ============ الإعدادات ============ */
 const USER_NAME = "حسن علي";   /* الاسم اللي بيظهر بالتطبيق */
-const CITY = "دمشق";   /* مدينة الطقس ومواعيد الصلاة: دمشق، حلب، حمص، حماة، اللاذقية، طرطوس، إدلب، دير الزور، الرقة، درعا، الحسكة، السويداء */
-const CITIES = { "دمشق":[33.5138,36.2765], "حلب":[36.2021,37.1343], "حمص":[34.7324,36.7137], "حماة":[35.1318,36.7578], "اللاذقية":[35.5317,35.7898], "طرطوس":[34.8890,35.8866], "إدلب":[35.9306,36.6339], "دير الزور":[35.3359,40.1408], "الرقة":[35.9528,39.0079], "درعا":[32.6189,36.1021], "الحسكة":[36.5024,40.7477], "السويداء":[32.7090,36.5695] };
+const CITY = "تعنيتا - طرطوس";   /* اسم المنطقة اللي بيظهر. الإحداثيات تحت هي لتعنيتا */
+const CITIES = { "تعنيتا - طرطوس":[35.109851,36.049515], "دمشق":[33.5138,36.2765], "حلب":[36.2021,37.1343], "حمص":[34.7324,36.7137], "حماة":[35.1318,36.7578], "اللاذقية":[35.5317,35.7898], "طرطوس":[34.8890,35.8866], "إدلب":[35.9306,36.6339], "دير الزور":[35.3359,40.1408], "الرقة":[35.9528,39.0079], "درعا":[32.6189,36.1021], "الحسكة":[36.5024,40.7477], "السويداء":[32.7090,36.5695] };
 /* نصيحة جديدة كل يوم، بتتبدل لحالها. عدّل أو أضف متل ما بدك */
 const TIPS = [
   "إذا إجتك رسالة بتقلك إنك ربحت جائزة وإنت ما شاركت بشي، هاي نصب. تجاهلها.",
@@ -172,9 +195,74 @@ const TIPS = [
   "قبل ما تشارك أي خبر، تأكد إنو من مصدر معروف.",
   "الحساب اللي بيضيفك وبيبعتلك رسائل حلوة فجأة غالباً حساب وهمي.",
   "ما في شي اسمو ربح مضمون. اللي بيقلك هيك بدو يخدعك.",
-  "إذا حسيت بشي مو مظبوط، وقّف وسأل حدا بتثق فيه. ما في استعجال."
+  "إذا حسيت بشي مو مظبوط، وقّف وسأل حدا بتثق فيه. ما في استعجال.",
+  "اللي بيقلك «استعجل، العرض بينتهي اليوم» بدو يخليك ما تفكر. خد وقتك.",
+  "حدا بيحكيك فجأة وبيقلك إنو مسافر أو بحاجة مساعدة ومصاري؟ غالباً نصب.",
+  "ما تبعت صورة هويتك أو بطاقتك لأي حدا عالإنترنت.",
+  "رقم بطاقة البنك والرقم السري ما بيعطيهم الواحد لحدا، ولا بيكتبهم برسالة.",
+  "إذا قالك حدا «حوّلي مبلغ صغير وبرجعلك ضعفو»، هاد نصب مشهور.",
+  "لا تثبّت تطبيق إجاك رابطو من حدا. نزّل التطبيقات من المتجر الرسمي بس.",
+  "الشركات والبنوك الحقيقية ما بتطلب منك كلمة السر ولا كود الرسالة، أبداً.",
+  "رسالة فيها أخطاء كتيرة وبتقلك «عاجل» أو «حسابك رح ينسكر»؟ غالباً نصب.",
+  "قبل ما تصدق خبر صادم، دور عليه عند أكتر من مصدر معروف.",
+  "ما تعطي حدا غريب مكانك أو مواعيد خروجك أو أخبار عيلتك.",
+  "إذا حدا بدو مصاري «لجمعية» أو «لمريض»، اسأل عن الجهة بنفسك قبل ما تحوّل.",
+  "اشرب مي بالنهار بشكل منتظم، حتى لو ما حسيت بالعطش.",
+  "مشوار خفيف كل يوم، ولو عشر دقايق، بيفيد جسمك ومزاجك.",
+  "خد دواءك بمواعيدو، ولا توقفو من حالك قبل ما تسأل الدكتور.",
+  "إذا نسيت جرعة دواء، ما تضاعف الجرعة الجاية. اسأل الدكتور أو الصيدلاني.",
+  "نوم منتظم بيريّح الجسم. حاول تنام وتصحى بنفس الوقت كل يوم.",
+  "القهوة أو الشاي بكتير آخر النهار ممكن يخلوا النوم صعب.",
+  "خلّي قايمة أدويتك معك، وقول للدكتور عن كل شي بتاخدو.",
+  "إذا حسيت بوجع صدر أو ضيق نفس أو دوخة قوية، اتصل بالإسعاف أو بحدا من العيلة فوراً.",
+  "قوم ببطء من الكرسي أو السرير، بيمنع الدوخة والوقعة.",
+  "خلّي البيت منوّر، وما تترك سجاد أو أسلاك بالممر، بتمنع الوقعات.",
+  "الجلوس بالشمس شوي بالصباح بيفيد المزاج والعظام.",
+  "اتصل بأهلك وأصحابك، مكالمة وحدة ممكن تغيّر يومك.",
+  "ما تقعد ساعات طويلة عالموبايل. قوم وتحرك وطل عالشباك شوي.",
+  "إذا بدك تعرف عن دواء جديد، اسأل الصيدلاني أو الدكتور، مو أي إعلان أو صفحة.",
+  "قيس ضغطك وسكرك بشكل دوري إذا الدكتور نصحك بهيك.",
+  "أي إعلان عن علاج «معجزة» للسكري أو الضغط أو المفاصل هو خداع. اسأل دكتورك.",
+  "خلّي أرقام الطوارئ وأرقام العيلة مكتوبة عند التلفون.",
+  "قبل ما تاخد أي أعشاب أو مكمّلات، اسأل الدكتور لأنها ممكن تتعارض مع أدويتك."
+];
+const TIPS_PER_DAY = 4;   /* كم نصيحة بتظهر كل يوم */
+const MONTHS = ["كانون الثاني","شباط","آذار","نيسان","أيار","حزيران","تموز","آب","أيلول","تشرين الأول","تشرين الثاني","كانون الأول"];
+/* تقويم الزيتون: إرشادات عامة بتتغير حسب الشهر، وبتختلف شوي حسب المنطقة والصنف */
+const OLIVE_MONTH = [
+  "موسم أمطار وبرد: ما تقلّم أيام الصقيع. ضيف السماد العضوي المتخمر حوالين الشجرة، وصرّف مي الأمطار عن جذور الأشجار.",
+  "بتبلش فترة التقليم لما يزول خطر الصقيع: افتح قلب الشجرة وشيل الأغصان الجافة والمتشابكة. وبتقدر تعطي الدفعة الأولى من السماد (آزوت وفوسفور وبوتاس) قبل التزهير.",
+  "كمّل التقليم وسمّد قبل التزهير وشيل الأعشاب. رشة نحاسية بعد التقليم بتحمي الجروح والأوراق من الأمراض الفطرية.",
+  "بداية التزهير: لا تعمل تقليم ثقيل. دفعة تسميد أزوتي خفيفة قبل التزهير إذا لزم، ومكافحة الأعشاب.",
+  "التزهير والعقد: ما ترش مبيدات أثناء التزهير. ري خفيف إذا شحّت الأمطار.",
+  "نمو الثمار: ري تكميلي بكميات قليلة، وراقب الآفات، وبلّش بنصب مصائد ذبابة الزيتون.",
+  "ري عميق مرة كل أسبوعين أو ثلاثة إذا أمكن، وتقليم خفيف للفروع المائية (الخلفات) اللي بتطلع من الجذع، واستمر بمراقبة الذبابة.",
+  "استمر بالري والمصائد، وفيك تضيف تسميد بوتاسي صيفي لتحسين الإثمار ونوعية الثمار.",
+  "جهّز أدوات القطاف: شبكات وصناديق مهواة. وبتبلش بعض الأصناف بالنضج. رشة نحاسية وقائية قبل الأمطار إذا كان في تاريخ إصابة بعين الطاووس.",
+  "بداية القطاف: الأفضل لما تتحول الثمار لمبرقش أو بنفسجي. تجنب الثمار الملقاة على الأرض، واعصر خلال يوم أو يومين.",
+  "ذروة القطاف: سرّع العصر بعد القطاف، وخزّن الزيت بعبوات نظيفة داكنة بعيد عن الضوء والحرارة.",
+  "انتهاء القطاف: رشة نحاسية بعد القطاف لحماية الجروح، وسماد عضوي وفوسفوري شتوي، وبداية الحراثة وتصريف المياه."
+];
+const OLIVE_TIPS = [
+  "قلب الشجرة لازم يكون مفتوح، فالتقليم الصحيح بيخلي الضوء والهوا يوصلوا لكل الأغصان وبيحسّن الإنتاج.",
+  "الزيتون بيحمل سنة وبيرتاح سنة (المعاومة). التقليم المنتظم والتسميد المتوازن بيخففوا منها.",
+  "لا تسرف بالسماد الأزوتي، لأنو بيعطي أغصان خضراء كتيرة وإثمار أقل.",
+  "قطاف الزيتون وهو مبرقش أو بنفسجي بيعطي زيت بجودة أحسن من الثمار الناضجة جداً.",
+  "اعصر الزيتون خلال يوم أو يومين من القطاف، وخزّنو بصناديق مهواة مو بأكياس مسكّرة.",
+  "خزّن زيت الزيتون بعبوات داكنة أو معدنية نظيفة، بمكان بارد وبعيد عن الضوء والحرارة، لحتى يضل طعمو.",
+  "ذبابة ثمار الزيتون من أخطر آفات الصيف، والمصائد الغذائية بتساعد بمراقبتها ومكافحتها بالوقت المناسب.",
+  "قصّ الأغصان الجافة والمريضة وخلّصها بعيد عن البستان، ولا تتركها تحت الشجرة.",
+  "عقّم أدوات التقليم (المقص والمنشار) بين شجرة وشجرة لتمنع نقل الأمراض.",
+  "حراثة خفيفة وإزالة الأعشاب حوالين الشجرة بتقلل المنافسة على الماء والغذاء وبتحافظ على رطوبة التربة.",
+  "الري التكميلي بالصيف، خصوصاً أثناء نمو الثمار، بيحسّن حجم الثمرة ونسبة الزيت ولو بكميات قليلة.",
+  "زيت الزيتون البكر جزء أساسي من الحمية المتوسطية المعروفة بفوائدها لصحة القلب، والأفضل استعماله باعتدال ضمن غذاء متوازن.",
+  "الزيتون غني بالدهون الأحادية غير المشبعة ومضادات الأكسدة، وزيت الزيتون البكر الممتاز بيحافظ على معظمها لأنو ما بيتعرض لمعالجة كيماوية."
 ];
 const PAGES = [
+  { id:"sohr", name:"المرصد السوري", short:"مرصد", color:"#37474F" },
+  { id:"oliv", name:"الزيتون",  short:"زت",  color:"#6B8E23" },
+  { id:"jad",  name:"الجديد",   short:"جد",  color:"#C2185B" },
+  { id:"mtv",  name:"إم تي في لبنان", short:"MTV", color:"#0D47A1" },
   { id:"fam",  name:"العيلة",   short:"ع",   color:"#8E24AA" },
   { id:"tip",  name:"نصائح",    short:"نص",  color:"#00897B" },
   { id:"sana", name:"سانا",      short:"سا",  color:"#C0392B" },
@@ -216,6 +304,13 @@ const FEEDS = [
   { page:"els",  cat:"fun",   gn:true, url:GN("site:elcinema.com when:7d") },
   { page:"alar", cat:"fun",   gn:true, url:GN("فن مسلسل site:alarabiya.net when:3d") },
   { page:"sky",  cat:"fun",   gn:true, url:GN("site:skynewsarabia.com (فن OR مسلسل OR فنان OR منوعات) when:7d") },
+  { page:"sohr", cat:"news", url:"https://www.syriahr.com/feed/" },
+  { page:"sohr", cat:"news", gn:true, url:GN("site:syriahr.com when:3d") },
+  { page:"jad",  cat:"news", gn:true, url:GN("site:aljadeed.tv when:2d") },
+  { page:"mtv",  cat:"news", gn:true, url:GN("site:mtv.com.lb when:2d") },
+  { page:"may",  cat:"news", gn:true, url:GN("site:almayadeen.net when:2d") },
+  { page:"oliv", cat:"agri", gn:true, url:GN("(تقليم OR تسميد OR قطاف OR موسم OR فوائد) الزيتون when:30d") },
+  { page:"oliv", cat:"agri", gn:true, url:GN("زراعة الزيتون سوريا when:30d") },
   /* قنوات يوتيوب: الرابط فيه channel_id، بدّله بأي قناة بدك ياها */
   { page:"yagr",  cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCPiQ1hI6sbUy8kORlhH1-nA" },
   { page:"yroof", cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCH7J2SnSflgT66kdWmZascw" },
@@ -233,7 +328,7 @@ const REACTS = [["👍","أعجبني"],["❤️","أحببته"],["😂","أض�
 
 const $ = (id) => document.getElementById(id);
 const pageById = Object.fromEntries(PAGES.map((p) => [p.id, p]));
-const DOM = { sana:"sana.sy", bbc:"bbc.com", aja:"aljazeera.net", may:"almayadeen.net", sky:"skynewsarabia.com", yal:"yallakora.com", fil:"filgoal.com", koo:"kooora.com", bein:"beinsports.com", els:"elcinema.com", alar:"alarabiya.net" };
+const DOM = { sohr:"syriahr.com", sana:"sana.sy", bbc:"bbc.com", aja:"aljazeera.net", may:"almayadeen.net", sky:"skynewsarabia.com", yal:"yallakora.com", fil:"filgoal.com", koo:"kooora.com", bein:"beinsports.com", els:"elcinema.com", alar:"alarabiya.net" };
 let curPage = "all", curCat = "all";
 const cache = {};
 
@@ -243,6 +338,7 @@ const IC = {
   sport: '<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/>',
   health:'<path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"/>',
   video: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/>',
+  agri:  '<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15M5 19l8-8"/>',
   fun:   '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/>',
   like:  '<path d="M7 10v10H4V10zM7 10l4-7c2 0 3 1 2.5 3L13 9h6a2 2 0 0 1 2 2.4l-1.3 7A2 2 0 0 1 17.7 20H7"/>',
   cmt:   '<path d="M4 5h16v11H10l-5 4v-4H4z"/>',
@@ -271,7 +367,7 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display
 /* الأقسام (أيقونات فقط مثل فيس) */
 function buildCats() {
   const box = $("cats"); box.innerHTML = "";
-  [["all","home","الرئيسية"],["news","news","أخبار"],["sport","sport","رياضة"],["health","health","صحة"],["video","video","فيديو"],["fun","fun","تسلية"]].forEach(([id, ic, nm]) => {
+  [["all","home","الرئيسية"],["news","news","أخبار"],["sport","sport","رياضة"],["health","health","صحة"],["video","video","فيديو"],["fun","fun","تسلية"],["agri","agri","زراعة"]].forEach(([id, ic, nm]) => {
     const b = document.createElement("button");
     b.setAttribute("aria-pressed", id === curCat); b.setAttribute("aria-label", nm);
     b.innerHTML = svg(ic).replace('class="ic"', 'class="ic"');
@@ -385,9 +481,10 @@ async function loadFeed(f) {
   }
   const items = raw.map((it) => {
     let title = clean(it.title), summary = clean(it.desc).slice(0, 180);
-    if (f.gn) { title = title.replace(/\s+-\s+[^-]+$/, ""); summary = ""; }
+    let src = "";
+    if (f.gn) { const m = /\s+-\s+([^-]+)$/.exec(title); if (m) src = m[1].trim(); title = title.replace(/\s+-\s+[^-]+$/, ""); summary = ""; }
     const vm = /(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/.exec(it.link || "");
-    return { page: f.page, title, summary, link: it.link, img: it.img || "", date: parseDate(it.pub),
+    return { page: f.page, src, title, summary, link: it.link, img: it.img || "", date: parseDate(it.pub),
              vid: f.cat === "video" && vm ? vm[1] : "", topic: f.topic || "",
              cat: f.cat !== "news" ? f.cat : classify(title + " " + summary) };
   });
@@ -458,7 +555,7 @@ function buildCard(it, onHide) {
     const lp = document.createElement("div"); lp.className = "lp"; lp.tabIndex = 0; lp.setAttribute("role", "link");
     if (it.img) { const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = it.img; img.onerror = () => img.remove(); lp.appendChild(img); }
     lp.insertAdjacentHTML("beforeend", '<div class="lpb"><div class="dom"></div><div class="lpt"></div></div>');
-    lp.querySelector(".dom").textContent = DOM[it.page] || "youtube.com";
+    lp.querySelector(".dom").textContent = it.src || DOM[it.page] || "youtube.com";
     lp.querySelector(".lpt").textContent = it.title;
     const go = () => window.open(it.link, "_blank", "noopener");
     lp.onclick = go; lp.onkeydown = (e) => { if (e.key === "Enter") go(); };
@@ -544,20 +641,129 @@ async function loadFamily() {
     img: p.image || "", date: localDate(p.date), link: "fam:" + (p.date || "") + ":" + i, cat: "all"
   })).sort((a, b) => b.date - a.date);
 }
-function tipItem(k) {
+function tipItems(k) {
   const day = Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000) - k;
-  const idx = ((day % TIPS.length) + TIPS.length) % TIPS.length;
-  const d = new Date(); d.setHours(8, 0, 0, 0); d.setDate(d.getDate() - k);
-  return { page: "tip", plain: true, pin: 2, by: "", summary: "نصيحة اليوم: " + TIPS[idx], title: TIPS[idx].slice(0, 60), img: "", date: d, link: "tip:" + day, cat: "all" };
+  const out = [];
+  for (let j = 0; j < TIPS_PER_DAY; j++) {
+    const n = day * TIPS_PER_DAY + j, tip = TIPS[((n % TIPS.length) + TIPS.length) % TIPS.length];
+    const d = new Date(); d.setHours(7, j, 0, 0); d.setDate(d.getDate() - k);
+    out.push({ page: "tip", plain: true, by: "", summary: (j === 0 ? "نصيحة اليوم: " : "نصيحة: ") + tip, title: tip.slice(0, 60), img: "", date: d, link: "tip:" + n, cat: "all" });
+  }
+  return out;
+}
+function oliveItems() {
+  const now = new Date(), m = now.getMonth();
+  const day = Math.floor((Date.now() - now.getTimezoneOffset() * 60000) / 86400000);
+  const a = new Date(); a.setHours(9, 0, 0, 0);
+  const b = new Date(); b.setHours(8, 30, 0, 0);
+  const tip = OLIVE_TIPS[((day % OLIVE_TIPS.length) + OLIVE_TIPS.length) % OLIVE_TIPS.length];
+  return [
+    { page: "oliv", plain: true, by: "", summary: "🫒 تقويم الزيتون لشهر " + MONTHS[m] + ":\n" + OLIVE_MONTH[m] + "\n\n(إرشادات عامة، واسأل المرشد الزراعي بمنطقتك)", title: "تقويم الزيتون " + MONTHS[m], img: "", date: a, link: "olive-m:" + m + ":" + now.getFullYear(), cat: "agri" },
+    { page: "oliv", plain: true, by: "", summary: "🫒 معلومة عن الزيتون:\n" + tip, title: tip.slice(0, 60), img: "", date: b, link: "olive-t:" + day, cat: "agri" }
+  ];
 }
 async function extras() {
   const out = [];
+  if (curCat === "agri" && (curPage === "all" || curPage === "oliv")) out.push(...oliveItems());
   if (curCat !== "all") return out;
-  if (curPage === "all") { out.push(...(await loadFamily()).slice(0, 5)); out.push(tipItem(0)); }
+  if (curPage === "all") { out.push(...(await loadFamily()).slice(0, 5)); out.push(...tipItems(0)); out.push(...oliveItems()); }
+  else if (curPage === "oliv") out.push(...oliveItems());
   else if (curPage === "fam") out.push(...(await loadFamily()).slice(0, 30));
-  else if (curPage === "tip") for (let k = 0; k < 5; k++) out.push(tipItem(k));
+  else if (curPage === "tip") for (let k = 0; k < 3; k++) out.push(...tipItems(k));
   return out;
 }
+
+/* ===== مواعيد الدواء (بتنحفظ عالجهاز بس، مو على الإنترنت) ===== */
+const apm = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return ((h % 12) || 12) + ":" + String(m).padStart(2, "0") + (h < 12 ? " ص" : " م"); };
+const dayKey = () => { const d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); };
+const nowHM = () => { const d = new Date(); return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"); };
+const snoozed = {}, alerted = new Set();
+function todaysDoses() {
+  const taken = (state.taken || {})[dayKey()] || {}, out = [];
+  (state.meds || []).forEach((m) => m.times.forEach((t) => out.push({ m, t, key: m.id + "|" + t, done: !!taken[m.id + "|" + t] })));
+  return out.sort((a, b) => a.t.localeCompare(b.t));
+}
+function markTaken(key) {
+  const k = dayKey(); state.taken = state.taken || {};
+  Object.keys(state.taken).forEach((d) => { if (d !== k) delete state.taken[d]; });
+  (state.taken[k] = state.taken[k] || {})[key] = true; save(); refreshMeds();
+}
+function notifyDue() {
+  try { if (navigator.vibrate) navigator.vibrate([300, 150, 300]); } catch {}
+  try {
+    if ("Notification" in window && Notification.permission === "granted") {
+      navigator.serviceWorker.getRegistration().then((r) => r ? r.showNotification("فيس بوك", { body: "حان موعد الدواء 💊", icon: "icon-192.png" }) : new Notification("فيس بوك", { body: "حان موعد الدواء 💊" }));
+    }
+  } catch {}
+}
+function refreshMeds() {
+  const ds = todaysDoses(), now = nowHM(), bar = $("medbar");
+  const due = ds.filter((d) => !d.done && d.t <= now && !(snoozed[d.key] > Date.now()));
+  if (due.length) {
+    const d = due[0];
+    bar.style.display = "flex";
+    bar.innerHTML = '<div class="mt"></div><button class="b1">أخذته ✓</button><button class="b2">بعد 15 د</button>';
+    bar.querySelector(".mt").textContent = "💊 حان موعد الدواء: " + d.m.name + (d.m.note ? " (" + d.m.note + ")" : "") + (due.length > 1 ? " + " + (due.length - 1) : "");
+    bar.querySelector(".b1").onclick = () => markTaken(d.key);
+    bar.querySelector(".b2").onclick = () => { snoozed[d.key] = Date.now() + 15 * 60000; alerted.delete(d.key + dayKey()); refreshMeds(); };
+    const ak = d.key + dayKey();
+    if (!alerted.has(ak)) { alerted.add(ak); toast("💊 حان موعد الدواء"); notifyDue(); }
+  } else { bar.style.display = "none"; bar.innerHTML = ""; }
+
+  const row = document.querySelector(".w0");
+  if (!row) return;
+  row.innerHTML = '<div class="wlabel">💊 أدوية اليوم</div><div class="doses"></div><button class="medmanage"></button>';
+  const box = row.querySelector(".doses");
+  ds.forEach((d) => {
+    const el = document.createElement("div");
+    el.className = "dose" + (d.done ? " done" : d.t <= now ? " late" : "");
+    el.innerHTML = '<span class="dt"></span><span class="dn"></span>';
+    el.querySelector(".dt").textContent = apm(d.t);
+    el.querySelector(".dn").innerHTML = "<span></span> <small></small>";
+    el.querySelector(".dn span").textContent = d.m.name; el.querySelector(".dn small").textContent = d.m.note || "";
+    if (d.done) { const ok = document.createElement("span"); ok.textContent = "✓ تم"; el.appendChild(ok); }
+    else { const b = document.createElement("button"); b.textContent = "أخذته"; b.onclick = () => markTaken(d.key); el.appendChild(b); }
+    box.appendChild(el);
+  });
+  const mm = row.querySelector(".medmanage");
+  mm.textContent = ds.length ? "تعديل الأدوية" : "💊 إضافة مواعيد الدواء";
+  mm.onclick = openMeds;
+}
+function openMeds() {
+  const ov = document.createElement("div"); ov.className = "ov";
+  ov.innerHTML = '<div class="sheet"><h3>💊 مواعيد الدواء</h3><p class="note">الأدوية بتنحفظ على هالجهاز بس، وما بتنرفع على الإنترنت.</p><div class="mlist"></div>' +
+    '<h3 style="margin-top:14px;font-size:1em">إضافة دواء</h3><input type="text" class="mn" placeholder="اسم الدواء" aria-label="اسم الدواء">' +
+    '<div class="times"><input type="time" aria-label="الموعد الأول"><input type="time" aria-label="الموعد الثاني"><input type="time" aria-label="الموعد الثالث"></div>' +
+    '<input type="text" class="mo" placeholder="ملاحظة (مثلاً: بعد الأكل)" aria-label="ملاحظة"><button class="btn add">إضافة</button>' +
+    '<button class="btn alt notif">تفعيل تنبيهات الجهاز</button><button class="btn alt close">إغلاق</button></div>';
+  const draw = () => {
+    const box = ov.querySelector(".mlist"); box.innerHTML = "";
+    (state.meds || []).forEach((m) => {
+      const it = document.createElement("div"); it.className = "mitem";
+      it.innerHTML = '<div class="mi"><b></b><small></small></div><button>حذف</button>';
+      it.querySelector("b").textContent = m.name;
+      it.querySelector("small").textContent = m.times.map(apm).join(" ، ") + (m.note ? " · " + m.note : "");
+      it.querySelector("button").onclick = () => { if (confirm("حذف " + m.name + "؟")) { state.meds = state.meds.filter((x) => x.id !== m.id); save(); draw(); refreshMeds(); } };
+      box.appendChild(it);
+    });
+  };
+  ov.querySelector(".add").onclick = () => {
+    const name = ov.querySelector(".mn").value.trim();
+    const times = [...ov.querySelectorAll('input[type=time]')].map((i) => i.value).filter(Boolean).sort();
+    if (!name || !times.length) { toast("اكتب اسم الدواء واختار موعد واحد على الأقل"); return; }
+    (state.meds = state.meds || []).push({ id: Date.now().toString(36), name, times, note: ov.querySelector(".mo").value.trim() });
+    save(); ov.querySelector(".mn").value = ""; ov.querySelector(".mo").value = ""; ov.querySelectorAll('input[type=time]').forEach((i) => i.value = "");
+    draw(); refreshMeds();
+  };
+  ov.querySelector(".notif").onclick = async () => {
+    try { const r = await Notification.requestPermission(); toast(r === "granted" ? "تم تفعيل التنبيهات" : "التنبيهات مو مفعّلة"); } catch { toast("جهازك ما بيدعم التنبيهات هون"); }
+  };
+  ov.querySelector(".close").onclick = () => ov.remove();
+  ov.addEventListener("click", (e) => { if (e.target === ov) ov.remove(); });
+  draw(); document.body.appendChild(ov);
+}
+setInterval(refreshMeds, 20000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshMeds(); });
 
 /* ===== الطقس ومواعيد الصلاة والأسعار ===== */
 async function withSaved(key, fn) {
@@ -590,7 +796,7 @@ const t12 = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return ((h %
 
 function buildWidgets() {
   const el = document.createElement("div"); el.className = "wcard";
-  el.innerHTML = '<div class="wrow w1"></div><div class="wrow w2"></div><div class="wrow w3"></div>';
+  el.innerHTML = '<div class="wrow w0"></div><div class="wrow w1"></div><div class="wrow w2"></div><div class="wrow w3"></div>';
   getWeather().then((w) => {
     if (!w) return; const v = w.v, [ic, nm] = WCODE(v.code);
     el.querySelector(".w1").innerHTML = '<div class="wtop"><div class="big"></div><div><b></b><br><span></span></div></div>';
@@ -635,7 +841,11 @@ async function render() {
                .filter((it) => !seen.has("t:" + it.title) && seen.add("t:" + it.title))
                .sort((a, b) => b.date - a.date);
   const pinned = items.filter((i) => i.pin).sort((a, b) => a.pin - b.pin || b.date - a.date);
-  items = [...pinned, ...items.filter((i) => !i.pin)];
+  const rest = items.filter((i) => !i.pin), groups = new Map();
+  rest.forEach((it) => { if (!groups.has(it.page)) groups.set(it.page, []); groups.get(it.page).push(it); });
+  const lists = [...groups.values()], mixed = [];
+  for (let i = 0; mixed.length < rest.length; i++) lists.forEach((l) => { if (l[i]) mixed.push(l[i]); });
+  items = [...pinned, ...mixed];
 
   if (!items.length) {
     const failed = allFailed;
@@ -645,7 +855,7 @@ async function render() {
   }
 
   list.innerHTML = "";
-  if (curCat === "all" && curPage === "all") list.appendChild(buildWidgets());
+  if (curCat === "all" && curPage === "all") { list.appendChild(buildWidgets()); refreshMeds(); }
   if (curCat === "all" && curPage === "all") minePosts().forEach((n) => list.appendChild(n));
   const footerEl = document.createElement("div");
   list.appendChild(footerEl);
@@ -666,7 +876,7 @@ async function render() {
 }
 
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
-buildCats(); buildStories(); render();
+buildCats(); buildStories(); render(); refreshMeds();
 </script>
 </body>
 </html>
