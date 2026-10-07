@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FFFFFF">
+<title>فيس بوك</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  :root { --bg:#F0F2F5; --card:#fff; --ink:#050505; --muted:#65676B; --blue:#1877F2; --line:#CED0D4; --soft:#E4E6EB; --size:17px; }
+  body.dark { --bg:#18191A; --card:#242526; --ink:#E4E6EB; --muted:#B0B3B8; --blue:#2D88FF; --line:#3E4042; --soft:#3A3B3C; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",Tahoma,Arial,sans-serif; font-size:var(--size); line-height:1.5; }
+  svg.ic { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
+  button { font:inherit; color:inherit; }
+  button:focus-visible, .lp:focus-visible, input:focus-visible { outline:3px solid var(--blue); outline-offset:2px; }
+
+  header { background:var(--card); position:sticky; top:0; z-index:10; }
+  .bar { height:56px; padding:0 12px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { color:var(--blue); font-weight:800; font-size:1.75em; letter-spacing:-.5px; line-height:1; }
+  .tools { display:flex; gap:8px; }
+  .tools button { width:40px; height:40px; border:0; border-radius:50%; background:var(--soft); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .tabs { display:flex; border-bottom:1px solid var(--line); }
+  .tabs button { flex:1; height:50px; border:0; border-bottom:3px solid transparent; background:none; color:var(--muted); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .tabs button svg { width:27px; height:27px; }
+  .tabs button[aria-pressed="true"] { color:var(--blue); border-bottom-color:var(--blue); }
+  .tabs button[aria-pressed="true"] svg { fill:currentColor; fill-opacity:.15; }
+  .sbar { display:none; padding:8px 12px; background:var(--card); border-bottom:1px solid var(--line); }
+  .sbar.show { display:block; }
+  .sbar input { width:100%; height:40px; border:0; border-radius:20px; padding:0 16px; background:var(--soft); color:var(--ink); font:inherit; font-size:.95em; }
+
+  main { max-width:680px; margin:0 auto; padding-bottom:40px; }
+  .composer { background:var(--card); display:flex; align-items:center; gap:8px; padding:10px 12px; margin-bottom:8px; }
+  .av { border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; flex:0 0 auto; }
+  .composer .av { width:40px; height:40px; background:var(--blue); }
+  .composer .pill { flex:1; height:40px; border:1px solid var(--line); border-radius:20px; background:none; color:var(--muted); text-align:right; padding:0 14px; font-size:.95em; cursor:pointer; }
+  .composer .photo { width:40px; height:40px; border:0; background:none; color:#45BD62; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .cbox { display:none; background:var(--card); padding:0 12px 12px; margin:-8px 0 8px; }
+  .cbox.show { display:block; }
+  .cbox textarea { width:100%; min-height:90px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--card); color:var(--ink); font:inherit; resize:vertical; }
+  .cbox button { margin-top:8px; width:100%; height:42px; border:0; border-radius:8px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
+
+  .stories { display:flex; gap:8px; overflow-x:auto; padding:10px 12px 12px; background:var(--card); margin-bottom:8px; scrollbar-width:none; }
+  .stories::-webkit-scrollbar { display:none; }
+  .st { flex:0 0 auto; width:104px; height:178px; border:0; border-radius:12px; position:relative; overflow:hidden; cursor:pointer; padding:0; color:#fff; text-align:right; box-shadow:0 1px 3px rgba(0,0,0,.25); }
+  .st .sa { position:absolute; top:8px; right:8px; width:38px; height:38px; border:3px solid var(--blue); background:rgba(0,0,0,.25); font-size:.7em; }
+  .st .sn { position:absolute; bottom:8px; right:8px; left:8px; font-size:.78em; font-weight:700; line-height:1.3; text-shadow:0 1px 3px rgba(0,0,0,.6); }
+  .st[aria-pressed="true"] { outline:3px solid var(--blue); outline-offset:-3px; }
+  .st.create { background:var(--card); color:var(--ink); border:1px solid var(--line); box-shadow:none; }
+  .st.create .top { height:68%; background:var(--soft); display:flex; align-items:center; justify-content:center; }
+  .st.create .top .av { width:62px; height:62px; background:var(--blue); font-size:1.4em; }
+  .st.create .plus { position:absolute; top:calc(68% - 16px); left:50%; transform:translateX(-50%); width:32px; height:32px; border-radius:50%; background:var(--blue); color:#fff; border:3px solid var(--card); display:flex; align-items:center; justify-content:center; }
+  .st.create .plus svg { width:18px; height:18px; stroke-width:3; }
+  .st.create .sn { text-shadow:none; bottom:10px; text-align:center; }
+
+  article { background:var(--card); margin-bottom:8px; position:relative; }
+  @media (min-width:700px){ article,.stories,.composer{ border-radius:10px; } }
+  .head { display:flex; align-items:center; gap:8px; padding:12px 12px 6px; }
+  .head .av { width:40px; height:40px; font-size:.8em; }
+  .hm { flex:1; min-width:0; }
+  .name { font-weight:700; line-height:1.25; font-size:.95em; }
+  .when { color:var(--muted); font-size:.78em; line-height:1.3; display:flex; align-items:center; gap:4px; }
+  .when svg { width:12px; height:12px; stroke-width:2.2; }
+  .hb { display:flex; }
+  .hb button { width:36px; height:36px; border:0; background:none; color:var(--muted); font-size:1.1em; border-radius:50%; cursor:pointer; }
+  .hb button:active { background:var(--soft); }
+  .text { padding:2px 12px 10px; font-size:1em; line-height:1.55; }
+  .text:empty { display:none; }
+  .lp { cursor:pointer; background:var(--soft); }
+  .lp img { display:block; width:100%; max-height:360px; object-fit:cover; background:var(--line); }
+  .lpb { padding:8px 12px 10px; }
+  .dom { color:var(--muted); font-size:.72em; text-transform:uppercase; letter-spacing:.2px; direction:ltr; text-align:right; }
+  .lpt { font-weight:600; font-size:.98em; line-height:1.5; }
+  .vid { position:relative; cursor:pointer; background:#000; }
+  .vid img { display:block; width:100%; max-height:360px; object-fit:cover; opacity:.92; }
+  .vid .play { position:absolute; inset:0; margin:auto; width:64px; height:64px; border-radius:50%; background:rgba(0,0,0,.6); color:#fff; display:flex; align-items:center; justify-content:center; font-size:1.8em; }
+  .vid iframe { display:block; width:100%; aspect-ratio:16/9; border:0; }
+  .counts { display:flex; justify-content:space-between; color:var(--muted); font-size:.82em; padding:8px 12px 6px; min-height:6px; }
+  .counts:empty { display:none; }
+  .actions { display:flex; border-top:1px solid var(--line); margin:0 12px; padding:2px 0; }
+  .actions button { flex:1; height:44px; border:0; background:none; color:var(--muted); font-weight:600; font-size:.88em; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:6px; cursor:pointer; user-select:none; -webkit-user-select:none; }
+  .actions button svg { width:21px; height:21px; }
+  .actions button:active { background:var(--soft); }
+  .actions button.on { color:var(--blue); }
+  .react-pick { display:none; position:absolute; right:12px; bottom:52px; background:var(--card); border-radius:40px; box-shadow:0 2px 12px rgba(0,0,0,.35); padding:6px 8px; z-index:3; }
+  .react-pick.show { display:flex; }
+  .react-pick button { border:0; background:none; font-size:1.8em; cursor:pointer; padding:0 5px; line-height:1.3; }
+  .comments { display:none; padding:4px 12px 12px; }
+  .comments.show { display:block; }
+  .cm { display:flex; gap:8px; margin-bottom:8px; align-items:flex-start; }
+  .cm .av { width:32px; height:32px; background:var(--blue); font-size:.75em; }
+  .cm .bub { background:var(--soft); border-radius:18px; padding:6px 12px; font-size:.9em; }
+  .cm .bub b { display:block; font-size:.9em; }
+  .cm-form { display:flex; gap:8px; margin-top:6px; }
+  .cm-form input { flex:1; height:42px; border:0; border-radius:21px; padding:0 14px; background:var(--soft); color:var(--ink); font:inherit; font-size:.92em; }
+  .cm-form button { height:42px; padding:0 16px; border:0; border-radius:21px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
+
+  .state { text-align:center; padding:36px 16px; color:var(--muted); }
+  .morebtn { display:block; width:calc(100% - 24px); margin:4px 12px 8px; height:44px; border:0; border-radius:8px; background:var(--soft); color:var(--blue); font-weight:700; cursor:pointer; }
+  .retry { margin-top:12px; height:42px; padding:0 22px; border:0; border-radius:8px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
+  .caught { text-align:center; padding:26px 16px; color:var(--muted); font-size:.9em; }
+  .caught svg { width:40px; height:40px; color:var(--blue); display:block; margin:0 auto 6px; }
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:.85em; display:none; z-index:30; }
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo">فيس بوك</div>
+    <div class="tools">
+      <button id="bplus" aria-label="إنشاء"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button id="bsearch" aria-label="بحث"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button>
+      <button id="bmsg" aria-label="ماسنجر"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
+    </div>
+  </div>
+  <nav class="tabs" id="cats" aria-label="الأقسام"></nav>
+  <div class="sbar" id="sbar"><input id="sq" type="search" placeholder="بحث في فيس بوك" aria-label="بحث"></div>
+</header>
+
+<main>
+  <div class="composer" id="composer">
+    <div class="av" id="meav"></div>
+    <button class="pill" id="openbox"></button>
+    <button class="photo" id="photo" aria-label="صورة"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
+  </div>
+  <div class="cbox" id="cbox"><textarea id="ctext" placeholder="شو عم يدور ببالك؟" aria-label="منشور جديد"></textarea><button id="cpost">نشر</button></div>
+  <nav class="stories" id="stories" aria-label="الصفحات"></nav>
+  <div id="list"></div>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ الإعدادات ============ */
+const USER_NAME = "حسن علي";   /* الاسم اللي بيظهر بالتطبيق */
+const PAGES = [
+  { id:"sana", name:"سانا",      short:"سا",  color:"#C0392B" },
+  { id:"bbc",  name:"بي بي سي",  short:"BBC", color:"#B71C1C" },
+  { id:"aja",  name:"الجزيرة نت", short:"جز",  color:"#B8860B" },
+  { id:"may",  name:"الميادين",   short:"مي",  color:"#1B5E8C" },
+  { id:"sky",  name:"سكاي نيوز عربية", short:"سكاي", color:"#C62828" },
+  { id:"yal",  name:"يلا كورة",   short:"يلا", color:"#1565C0" },
+  { id:"fil",  name:"فيل جول",    short:"فيل", color:"#EF6C00" },
+  { id:"els",  name:"السينما والدراما", short:"سين", color:"#AD1457" },
+  { id:"alar", name:"العربية - فن", short:"فن", color:"#5D4037" },
+  { id:"koo",  name:"كورة",       short:"كو",  color:"#2E7D32" },
+  { id:"bein", name:"بي إن سبورتس", short:"bein", color:"#6A1B9A" },
+  { id:"yagr", name:"عالم الزراعة",   short:"زر", color:"#558B2F" },
+  { id:"yroof",name:"زراعة الأسطح",   short:"سط", color:"#33691E" },
+  { id:"ymed", name:"الطبي",          short:"طب", color:"#00838F" },
+  { id:"ydr",  name:"الدكتور",        short:"د",  color:"#00695C" },
+  { id:"yani", name:"عالم الحيوان",   short:"حي", color:"#E65100" }
+];
+/* cat: news | sport | health
+   روابط الرياضة والصحة هي بحث ووردبريس (?s=...&feed=rss2) ولم أتأكد منها، عدّلها أو أضف روابطك */
+const GN = (q) => "https://news.google.com/rss/search?q=" + encodeURIComponent(q) + "&hl=ar&gl=SY&ceid=SY:ar";
+const FEEDS = [
+  { page:"sana", cat:"news",   url:"https://sana.sy/feed/" },
+  { page:"bbc",  cat:"news",   url:"https://feeds.bbci.co.uk/arabic/rss.xml" },
+  { page:"sana", cat:"sport",  url:"https://sana.sy/?s=" + encodeURIComponent("رياضة") + "&feed=rss2" },
+  { page:"sana", cat:"health", url:"https://sana.sy/?s=" + encodeURIComponent("صحة") + "&feed=rss2" },
+  /* مصادر جديدة (الروابط غير مؤكدة، إذا ما اشتغل مصدر عدّل رابطه أو احذف سطره) */
+  { page:"aja",  cat:"news",   url:"https://www.aljazeera.net/feed" },
+  { page:"aja",  cat:"sport",  url:"https://www.aljazeera.net/?s=" + encodeURIComponent("رياضة") + "&feed=rss2" },
+  { page:"aja",  cat:"health", url:"https://www.aljazeera.net/?s=" + encodeURIComponent("صحة") + "&feed=rss2" },
+  { page:"may",  cat:"news",   url:"https://www.almayadeen.net/rss" },
+  /* مصادر عبر أخبار غوغل (بتجيب عناوين المواقع بدون صور، وهي أضمن من روابط RSS الرسمية) */
+  { page:"sky",  cat:"news",  gn:true, url:GN("site:skynewsarabia.com when:2d") },
+  { page:"yal",  cat:"sport", gn:true, url:GN("site:yallakora.com when:3d") },
+  { page:"fil",  cat:"sport", gn:true, url:GN("site:filgoal.com when:3d") },
+  { page:"koo",  cat:"sport", gn:true, url:GN("site:kooora.com when:3d") },
+  { page:"bein", cat:"sport", gn:true, url:GN("site:beinsports.com/ar when:3d") },
+  { page:"els",  cat:"fun",   gn:true, url:GN("site:elcinema.com when:7d") },
+  { page:"alar", cat:"fun",   gn:true, url:GN("فن مسلسل site:alarabiya.net when:3d") },
+  { page:"sky",  cat:"fun",   gn:true, url:GN("site:skynewsarabia.com (فن OR مسلسل OR فنان OR منوعات) when:7d") },
+  /* قنوات يوتيوب: الرابط فيه channel_id، بدّله بأي قناة بدك ياها */
+  { page:"yagr",  cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCPiQ1hI6sbUy8kORlhH1-nA" },
+  { page:"yroof", cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCH7J2SnSflgT66kdWmZascw" },
+  { page:"ymed",  cat:"video", topic:"طب",      url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCKBG2SimGyaghfY2HDGwwYA" },
+  { page:"ydr",   cat:"video", topic:"طب",      url:"https://www.youtube.com/feeds/videos.xml?channel_id=UC4of8xqL-SpDvTdOrRzS4sw" },
+  { page:"yani",  cat:"video", topic:"حيوانات", url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCAys4tn6xQbHXIWO3-rQ62g" }
+];
+const KEYWORDS = {
+  sport:  ["رياضة","رياضي","كرة","مباراة","دوري","بطولة","لاعب","منتخب","نادي","هدف","كأس","مدرب"],
+  health: ["صحة","صحي","طبيب","أطباء","مرض","علاج","مستشفى","دواء","لقاح","وباء","سرطان","سكري","فيروس","تغذية"]
+};
+const MAX_ITEMS = 20;   /* كم خبر بيظهر كل مرة، وبعدها زر "عرض أخبار أكتر" */
+const REACTS = [["👍","أعجبني"],["❤️","أحببته"],["😂","أضحكني"],["😮","واو"],["😢","أحزنني"],["😡","أغضبني"]];
+/* =================================== */
+
+const $ = (id) => document.getElementById(id);
+const pageById = Object.fromEntries(PAGES.map((p) => [p.id, p]));
+const DOM = { sana:"sana.sy", bbc:"bbc.com", aja:"aljazeera.net", may:"almayadeen.net", sky:"skynewsarabia.com", yal:"yallakora.com", fil:"filgoal.com", koo:"kooora.com", bein:"beinsports.com", els:"elcinema.com", alar:"alarabiya.net" };
+let curPage = "all", curCat = "all";
+const cache = {};
+
+const IC = {
+  home:  '<path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+  news:  '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 13h10M7 17h6"/>',
+  sport: '<circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/>',
+  health:'<path d="M12 21s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6-8 11-8 11z"/>',
+  video: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9l5 3-5 3z"/>',
+  fun:   '<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9.5h.01M15 9.5h.01"/>',
+  like:  '<path d="M7 10v10H4V10zM7 10l4-7c2 0 3 1 2.5 3L13 9h6a2 2 0 0 1 2 2.4l-1.3 7A2 2 0 0 1 17.7 20H7"/>',
+  cmt:   '<path d="M4 5h16v11H10l-5 4v-4H4z"/>',
+  share: '<path d="M4 12v7h16v-7M12 3v12M7 8l5-5 5 5"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>',
+  plus:  '<path d="M12 5v14M5 12h14"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>'
+};
+const svg = (n) => '<svg class="ic" viewBox="0 0 24 24">' + IC[n] + '</svg>';
+
+const store = {
+  get(k, d) { try { return localStorage.getItem(k) ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+let state = {};
+try { state = JSON.parse(store.get("state", "{}")); } catch { state = {}; }
+const save = () => store.set("state", JSON.stringify(state));
+
+/* الوضع الليلي تلقائي حسب إعدادات الموبايل مثل التطبيق الحقيقي */
+const mq = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+const applyDark = () => document.body.classList.toggle("dark", !!(mq && mq.matches));
+applyDark(); if (mq && mq.addEventListener) mq.addEventListener("change", applyDark);
+
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2200); }
+
+/* الأقسام (أيقونات فقط مثل فيس) */
+function buildCats() {
+  const box = $("cats"); box.innerHTML = "";
+  [["all","home","الرئيسية"],["news","news","أخبار"],["sport","sport","رياضة"],["health","health","صحة"],["video","video","فيديو"],["fun","fun","تسلية"]].forEach(([id, ic, nm]) => {
+    const b = document.createElement("button");
+    b.setAttribute("aria-pressed", id === curCat); b.setAttribute("aria-label", nm);
+    b.innerHTML = svg(ic).replace('class="ic"', 'class="ic"');
+    b.onclick = () => { curCat = id; buildCats(); render(); };
+    box.appendChild(b);
+  });
+}
+
+/* القصص: بطاقات طويلة، والضغط عليها بيفلتر حسب الصفحة */
+function darker(hex) { const n = parseInt(hex.slice(1), 16); const f = (v) => Math.max(0, Math.round(v * .55)); return "rgb(" + f(n >> 16) + "," + f((n >> 8) & 255) + "," + f(n & 255) + ")"; }
+function buildStories() {
+  const box = $("stories"); box.innerHTML = "";
+  const c = document.createElement("button");
+  c.className = "st create"; c.setAttribute("aria-label", "إنشاء قصة");
+  c.innerHTML = '<div class="top"><div class="av"></div></div><div class="plus">' + svg("plus") + '</div><div class="sn">إنشاء قصة</div>';
+  c.querySelector(".av").textContent = USER_NAME.trim().charAt(0);
+  c.onclick = openBox; box.appendChild(c);
+  PAGES.forEach((p) => {
+    const b = document.createElement("button");
+    b.className = "st"; b.setAttribute("aria-pressed", p.id === curPage);
+    b.style.background = "linear-gradient(160deg," + p.color + "," + darker(p.color) + ")";
+    b.innerHTML = '<div class="av sa"></div><div class="sn"></div>';
+    b.querySelector(".sa").textContent = p.short;
+    b.querySelector(".sn").textContent = p.name;
+    b.onclick = () => { curPage = curPage === p.id ? "all" : p.id; buildStories(); render(); };
+    box.appendChild(b);
+  });
+}
+
+/* أدوات */
+function clean(html) { const d = document.createElement("div"); d.innerHTML = html || ""; return (d.textContent || "").replace(/\s+/g, " ").trim(); }
+function firstImg(html) { const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html || ""); return m ? m[1] : ""; }
+function parseDate(s) {
+  if (!s) return new Date(0);
+  const d = /^\d{4}-\d{2}-\d{2} /.test(s) ? new Date(s.replace(" ", "T") + "Z") : new Date(s);
+  return isNaN(d) ? new Date(0) : d;
+}
+function ago(d) {
+  const m = Math.round((Date.now() - d.getTime()) / 60000);
+  if (m < 1) return "الآن"; if (m < 60) return m + " د";
+  const h = Math.round(m / 60); if (h < 24) return h + " س";
+  return Math.round(h / 24) + " ي";
+}
+function classify(text) {
+  for (const c of ["sport", "health"]) if (KEYWORDS[c].some((w) => text.includes(w))) return c;
+  return "news";
+}
+
+/* جلب الـ RSS */
+async function viaRss2Json(url) {
+  const r = await fetch("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url));
+  const j = await r.json();
+  if (j.status !== "ok") throw new Error("rss2json");
+  return j.items.map((it) => ({ title: it.title, desc: it.description, link: it.link, pub: it.pubDate, img: it.thumbnail || (it.enclosure && it.enclosure.link) || firstImg(it.description) || firstImg(it.content) }));
+}
+async function viaAllOrigins(url) {
+  const r = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
+  const xml = new DOMParser().parseFromString(await r.text(), "text/xml");
+  const items = [...xml.querySelectorAll("item, entry")];
+  if (!items.length) throw new Error("allorigins");
+  const g = (el, t) => { const n = el.getElementsByTagName(t)[0]; return n ? n.textContent : ""; };
+  return items.map((el) => {
+    const enc = el.getElementsByTagName("enclosure")[0];
+    const th = el.getElementsByTagName("media:thumbnail")[0] || el.getElementsByTagName("media:content")[0];
+    const desc = g(el, "description") || g(el, "media:description");
+    const lk = el.getElementsByTagName("link")[0];
+    return { title: g(el, "title"), desc, link: g(el, "link") || (lk ? lk.getAttribute("href") : ""), pub: g(el, "pubDate") || g(el, "published"), img: (enc && enc.getAttribute("url")) || (th && th.getAttribute("url")) || firstImg(desc) || firstImg(g(el, "content:encoded")) };
+  });
+}
+async function loadFeed(f) {
+  if (cache[f.url]) return cache[f.url];
+  let raw;
+  try { raw = await viaRss2Json(f.url); } catch { raw = await viaAllOrigins(f.url); }
+  const items = raw.map((it) => {
+    let title = clean(it.title), summary = clean(it.desc).slice(0, 180);
+    if (f.gn) { title = title.replace(/\s+-\s+[^-]+$/, ""); summary = ""; }
+    const vm = /(?:v=|\/embed\/|youtu\.be\/)([\w-]{11})/.exec(it.link || "");
+    return { page: f.page, title, summary, link: it.link, img: it.img || "", date: parseDate(it.pub),
+             vid: f.cat === "video" && vm ? vm[1] : "", topic: f.topic || "",
+             cat: f.cat !== "news" ? f.cat : classify(title + " " + summary) };
+  });
+  cache[f.url] = items;
+  return items;
+}
+
+/* التفاعل */
+const st = (link) => state[link] || (state[link] = { r:"", c:[] });
+function refreshCounts(a, link) {
+  const s = st(link), box = a.querySelector(".counts");
+  box.innerHTML = "<span></span><span></span>";
+  box.children[0].textContent = s.r ? s.r + " " + USER_NAME.split(" ")[0] : "";
+  box.children[1].textContent = s.c.length ? s.c.length + " تعليق" : "";
+  if (!s.r && !s.c.length) box.innerHTML = "";
+  const lb = a.querySelector(".like"), found = REACTS.find((x) => x[0] === s.r);
+  lb.className = "like" + (s.r ? " on" : "");
+  lb.innerHTML = s.r ? '<span style="font-size:1.25em"></span><span></span>' : svg("like") + "<span>أعجبني</span>";
+  if (s.r) { lb.children[0].textContent = s.r; lb.children[1].textContent = found[1]; }
+}
+function drawComments(a, link) {
+  const box = a.querySelector(".cm-list"); box.innerHTML = "";
+  st(link).c.forEach((t) => {
+    const d = document.createElement("div"); d.className = "cm";
+    d.innerHTML = '<div class="av"></div><div class="bub"><b></b><span></span></div>';
+    d.querySelector(".av").textContent = USER_NAME.trim().charAt(0);
+    d.querySelector("b").textContent = USER_NAME; d.querySelector("span").textContent = t;
+    box.appendChild(d);
+  });
+}
+function applySearch() {
+  const q = $("sq").value.trim();
+  document.querySelectorAll("#list article").forEach((a) => { a.style.display = (!q || (a.dataset.txt || "").includes(q)) ? "" : "none"; });
+}
+
+/* بطاقة المنشور */
+function buildCard(it, onHide) {
+  const pg = pageById[it.page];
+  const a = document.createElement("article");
+  a.dataset.txt = it.title + " " + it.summary + " " + pg.name;
+  a.innerHTML =
+    '<div class="head"><div class="av"></div><div class="hm"><div class="name"></div><div class="when"><span></span> · ' + svg("globe") + '</div></div>' +
+    '<div class="hb"><button class="more" aria-label="خيارات">⋯</button><button class="x" aria-label="إخفاء">✕</button></div></div>' +
+    '<div class="text"></div><div class="media"></div><div class="counts"></div>' +
+    '<div class="actions"><button class="like"></button><button class="cmt">' + svg("cmt") + '<span>تعليق</span></button><button class="shr">' + svg("share") + '<span>مشاركة</span></button></div>' +
+    '<div class="react-pick"></div>' +
+    '<div class="comments"><div class="cm-list"></div><div class="cm-form"><input type="text" placeholder="اكتب تعليقاً…" aria-label="تعليق"><button>نشر</button></div></div>';
+  const av = a.querySelector(".av"); av.style.background = pg.color; av.textContent = pg.short.slice(0, 3);
+  a.querySelector(".name").textContent = pg.name;
+  a.querySelector(".when span").textContent = ago(it.date) + (it.topic ? " · " + it.topic : "");
+
+  const media = a.querySelector(".media"), text = a.querySelector(".text");
+  let play = null;
+  if (it.vid) {
+    text.textContent = it.title;
+    const box = document.createElement("div"); box.className = "vid";
+    box.innerHTML = '<img alt=""><div class="play">▶</div>';
+    box.querySelector("img").src = "https://i.ytimg.com/vi/" + it.vid + "/hqdefault.jpg";
+    play = () => {
+      const f = document.createElement("iframe");
+      f.src = "https://www.youtube-nocookie.com/embed/" + it.vid + "?autoplay=1&rel=0&playsinline=1";
+      f.allow = "autoplay; encrypted-media; fullscreen"; f.allowFullscreen = true;
+      box.innerHTML = ""; box.onclick = null; box.style.cursor = "default"; box.appendChild(f);
+    };
+    box.onclick = play; media.appendChild(box);
+  } else {
+    text.textContent = it.summary;
+    const lp = document.createElement("div"); lp.className = "lp"; lp.tabIndex = 0; lp.setAttribute("role", "link");
+    if (it.img) { const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = it.img; img.onerror = () => img.remove(); lp.appendChild(img); }
+    lp.insertAdjacentHTML("beforeend", '<div class="lpb"><div class="dom"></div><div class="lpt"></div></div>');
+    lp.querySelector(".dom").textContent = DOM[it.page] || "youtube.com";
+    lp.querySelector(".lpt").textContent = it.title;
+    const go = () => window.open(it.link, "_blank", "noopener");
+    lp.onclick = go; lp.onkeydown = (e) => { if (e.key === "Enter") go(); };
+    media.appendChild(lp);
+  }
+
+  a.querySelector(".more").onclick = async () => { try { await navigator.clipboard.writeText(it.link); toast("تم نسخ الرابط"); } catch { toast("تعذر النسخ"); } };
+  a.querySelector(".x").onclick = () => { (state.hidden = state.hidden || {})[it.link] = 1; save(); a.remove(); };
+
+  const pick = a.querySelector(".react-pick");
+  REACTS.forEach(([e, n]) => {
+    const b = document.createElement("button"); b.textContent = e; b.setAttribute("aria-label", n);
+    b.onclick = () => { st(it.link).r = e; save(); pick.classList.remove("show"); refreshCounts(a, it.link); };
+    pick.appendChild(b);
+  });
+  const like = a.querySelector(".like"); let timer = null, long = false;
+  const start = () => { long = false; timer = setTimeout(() => { long = true; pick.classList.add("show"); }, 450); };
+  const end = () => clearTimeout(timer);
+  like.addEventListener("pointerdown", start); like.addEventListener("pointerup", end);
+  like.addEventListener("pointerleave", end); like.addEventListener("pointercancel", end);
+  like.addEventListener("contextmenu", (e) => e.preventDefault());
+  like.onclick = () => {
+    if (long) { long = false; return; }
+    const s = st(it.link); s.r = s.r ? "" : "👍"; save(); pick.classList.remove("show"); refreshCounts(a, it.link);
+  };
+
+  const cmBox = a.querySelector(".comments"), input = a.querySelector(".cm-form input");
+  a.querySelector(".cmt").onclick = () => { cmBox.classList.toggle("show"); if (cmBox.classList.contains("show")) input.focus(); };
+  const post = () => { const t = input.value.trim(); if (!t) return; st(it.link).c.push(t); save(); input.value = ""; drawComments(a, it.link); refreshCounts(a, it.link); };
+  a.querySelector(".cm-form button").onclick = post;
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") post(); });
+
+  a.querySelector(".shr").onclick = async () => {
+    try {
+      if (navigator.share) await navigator.share({ title: it.title, url: it.link });
+      else { await navigator.clipboard.writeText(it.link); toast("تم نسخ الرابط"); }
+    } catch {}
+  };
+  drawComments(a, it.link); refreshCounts(a, it.link);
+  return a;
+}
+
+/* منشورات المستخدم (محلية) */
+function openBox() { $("cbox").classList.add("show"); window.scrollTo({ top: 0, behavior: "smooth" }); $("ctext").focus(); }
+$("meav").textContent = USER_NAME.trim().charAt(0);
+$("openbox").textContent = "شو عم يدور ببالك يا " + USER_NAME.split(" ")[0] + "؟";
+$("openbox").onclick = openBox; $("photo").onclick = openBox; $("bplus").onclick = openBox;
+$("bsearch").onclick = () => { $("sbar").classList.toggle("show"); if ($("sbar").classList.contains("show")) $("sq").focus(); else { $("sq").value = ""; applySearch(); } };
+$("bmsg").onclick = () => toast("ما في رسائل جديدة");
+$("sq").addEventListener("input", applySearch);
+$("cpost").onclick = () => {
+  const t = $("ctext").value.trim(); if (!t) return;
+  (state.posts = state.posts || []).unshift({ t, d: Date.now() }); save();
+  $("ctext").value = ""; $("cbox").classList.remove("show"); render();
+};
+function minePosts() {
+  return (state.posts || []).map((p, i) => {
+    const a = document.createElement("article");
+    a.innerHTML = '<div class="head"><div class="av"></div><div class="hm"><div class="name"></div><div class="when"><span></span> · ' + svg("globe") + '</div></div><div class="hb"><button class="x" aria-label="حذف">✕</button></div></div><div class="text"></div>';
+    const av = a.querySelector(".av"); av.style.background = "#1877F2"; av.textContent = USER_NAME.trim().charAt(0);
+    a.querySelector(".name").textContent = USER_NAME;
+    a.querySelector(".when span").textContent = ago(new Date(p.d));
+    a.querySelector(".text").textContent = p.t; a.querySelector(".text").style.paddingBottom = "14px";
+    a.dataset.txt = p.t;
+    a.querySelector(".x").onclick = () => { state.posts.splice(i, 1); save(); render(); };
+    return a;
+  });
+}
+
+async function render() {
+  const list = $("list");
+  list.innerHTML = '<div class="state">جارٍ التحميل…</div>';
+  const feeds = FEEDS.filter((f) => (curPage === "all" || f.page === curPage) && (curCat === "all" || f.cat === curCat || f.cat === "news"));
+  const results = await Promise.allSettled(feeds.map(loadFeed));
+  let items = results.filter((r) => r.status === "fulfilled").flatMap((r) => r.value);
+
+  const seen = new Set(), hidden = state.hidden || {};
+  items = items.filter((it) => curCat === "all" || it.cat === curCat)
+               .filter((it) => it.link && !hidden[it.link] && !seen.has(it.link) && seen.add(it.link))
+               .filter((it) => !seen.has("t:" + it.title) && seen.add("t:" + it.title))
+               .sort((a, b) => b.date - a.date);
+
+  if (!items.length) {
+    const failed = results.every((r) => r.status === "rejected");
+    list.innerHTML = '<div class="state">' + (failed ? "ما قدرنا نتصل بالإنترنت.<br>تأكد من الاتصال وجرب مرة تانية." : "ما في منشورات هلق.") + '<br><button class="retry" id="retry">إعادة المحاولة</button></div>';
+    $("retry").onclick = () => { Object.keys(cache).forEach((k) => delete cache[k]); render(); };
+    return;
+  }
+
+  list.innerHTML = "";
+  if (curCat === "all" && curPage === "all") minePosts().forEach((n) => list.appendChild(n));
+  const footerEl = document.createElement("div");
+  list.appendChild(footerEl);
+  let idx = 0;
+  const showMore = () => {
+    items.slice(idx, idx + MAX_ITEMS).forEach((it) => list.insertBefore(buildCard(it), footerEl));
+    idx += MAX_ITEMS;
+    if (idx < items.length) {
+      footerEl.className = ""; footerEl.innerHTML = '<button class="morebtn" id="more">عرض المزيد</button>';
+      footerEl.querySelector("#more").onclick = showMore;
+    } else {
+      footerEl.className = "caught"; footerEl.innerHTML = svg("check") + "لقد شاهدت كل المنشورات الجديدة";
+    }
+    applySearch();
+  };
+  showMore();
+}
+
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+buildCats(); buildStories(); render();
+</script>
+</body>
+</html>
