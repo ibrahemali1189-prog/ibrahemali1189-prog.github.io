@@ -135,6 +135,7 @@
   .vid.reelbox { aspect-ratio:9/16; max-height:78vh; margin:0 auto; }
   .vid.reelbox img { width:100%; height:100%; max-height:none; object-fit:cover; }
   .vid.reelbox iframe { width:100%; height:100%; aspect-ratio:auto; }
+  .newpill { position:fixed; top:116px; left:50%; transform:translateX(-50%); z-index:15; display:none; background:var(--blue); color:#fff; border:0; border-radius:20px; padding:8px 18px; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer; }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:.85em; display:none; z-index:30; }
 </style>
 </head>
@@ -160,6 +161,7 @@
   <nav class="stories" id="stories" aria-label="الصفحات"></nav>
   <div id="list"></div>
 </main>
+<button class="newpill" id="newpill">↑ أخبار جديدة</button>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -375,7 +377,7 @@ function buildCats() {
     const b = document.createElement("button");
     b.setAttribute("aria-pressed", id === curCat); b.setAttribute("aria-label", nm);
     b.innerHTML = svg(ic).replace('class="ic"', 'class="ic"');
-    b.onclick = () => { curCat = id; buildCats(); render(); };
+    b.onclick = () => { if (curCat === id) { window.scrollTo({ top: 0, behavior: "smooth" }); render(true); return; } curCat = id; buildCats(); render(); };
     box.appendChild(b);
   });
 }
@@ -443,14 +445,18 @@ function classify(text) {
 }
 
 /* جلب الـ RSS */
+async function fetchT(url, ms = 7000) {
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+  try { return await fetch(url, { signal: c.signal }); } finally { clearTimeout(t); }
+}
 async function viaRss2Json(url) {
-  const r = await fetch("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url));
+  const r = await fetchT("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url));
   const j = await r.json();
   if (j.status !== "ok") throw new Error("rss2json");
   return j.items.map((it) => ({ title: it.title, desc: it.description, link: it.link, pub: it.pubDate, img: it.thumbnail || (it.enclosure && it.enclosure.link) || firstImg(it.description) || firstImg(it.content) }));
 }
 async function viaAllOrigins(url) {
-  const r = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(url));
+  const r = await fetchT("https://api.allorigins.win/raw?url=" + encodeURIComponent(url) + "&disableCache=true");
   const xml = new DOMParser().parseFromString(await r.text(), "text/xml");
   const items = [...xml.querySelectorAll("item, entry")];
   if (!items.length) throw new Error("allorigins");
@@ -471,19 +477,11 @@ function readFeed(url) {
   try { const t = localStorage.getItem(KEEP + url); if (!t) return null; return JSON.parse(t).map((i) => ({ ...i, date: new Date(i.date) })); }
   catch { return null; }
 }
-async function loadFeed(f) {
-  if (cache[f.url]) return cache[f.url];
-  let raw;
-  try { raw = await viaRss2Json(f.url); }
-  catch {
-    try { raw = await viaAllOrigins(f.url); }
-    catch (e) {
-      const old = readFeed(f.url);
-      if (old) { offlineNote = true; cache[f.url] = old; return old; }
-      throw e;
-    }
-  }
-  const items = raw.map((it) => {
+const TTL_MS = 5 * 60 * 1000;          /* ما نعيد الجلب إذا الخبر أحدث من 5 دقايق */
+const AGE_DAYS = { news: 3, sport: 3, fun: 7, health: 14, agri: 30, video: 30, reel: 3650 };   /* أقدم عمر مسموح للخبر بالأيام */
+const cacheT = {};
+function toItems(f, raw) {
+  return raw.map((it) => {
     let title = clean(it.title), summary = clean(it.desc).slice(0, 180);
     let src = "";
     if (f.gn) { const m = /\s+-\s+([^-]+)$/.exec(title); if (m) src = m[1].trim(); title = title.replace(/\s+-\s+[^-]+$/, ""); summary = ""; }
@@ -492,8 +490,36 @@ async function loadFeed(f) {
              vid: (f.cat === "video" || f.cat === "reel") && vm ? vm[1] : "", reel: f.cat === "reel", topic: f.topic || "",
              cat: f.cat !== "news" ? f.cat : classify(title + " " + summary) };
   });
-  cache[f.url] = items;
-  saveFeed(f.url, items);
+}
+/* بنجيب من الخدمتين بنفس الوقت: الأسرع بيظهر أول، وإذا التانية جابت أخبار أحدث بنحدّث */
+function fetchRaw(url, onLate) {
+  const newest = (r) => Math.max(0, ...r.map((i) => parseDate(i.pub).getTime()));
+  return new Promise((resolve, reject) => {
+    let done = false, fails = 0, first = null;
+    const ok = (r) => {
+      if (!done) { done = true; first = r; resolve(r); }
+      else if (onLate && newest(r) > newest(first)) onLate(r);
+    };
+    const bad = (e) => { if (++fails === 2 && !done) reject(e); };
+    viaRss2Json(url).then(ok, bad);
+    viaAllOrigins(url).then(ok, bad);
+  });
+}
+async function loadFeed(f, force, onLate) {
+  if (cache[f.url] && !force && Date.now() - (cacheT[f.url] || 0) < TTL_MS) return cache[f.url];
+  let raw;
+  try {
+    raw = await fetchRaw(f.url, (r) => {
+      const items = toItems(f, r); cache[f.url] = items; cacheT[f.url] = Date.now(); saveFeed(f.url, items);
+      if (onLate) onLate(items);
+    });
+  } catch (e) {
+    const old = cache[f.url] || readFeed(f.url);
+    if (old) { offlineNote = true; cache[f.url] = old; return old; }
+    throw e;
+  }
+  const items = toItems(f, raw);
+  cache[f.url] = items; cacheT[f.url] = Date.now(); saveFeed(f.url, items);
   return items;
 }
 
@@ -748,15 +774,49 @@ function skeleton() {
   const one = '<div class="sk"><div class="r1"><i></i><i></i></div><i class="l1"></i><i class="l2"></i><i class="l3"></i></div>';
   return one + one;
 }
-async function render() {
-  const list = $("list");
-  list.innerHTML = skeleton();
-  const feeds = FEEDS.filter((f) => (curPage === "all" || f.page === curPage) && (curCat === "reel" ? f.cat === "reel" : f.cat !== "reel" && (curCat === "all" || f.cat === curCat || f.cat === "news")));
-  const results = await Promise.allSettled(feeds.map(loadFeed));
-  let items = results.filter((r) => r.status === "fulfilled").flatMap((r) => r.value).concat(await extras());
-  const allFailed = results.length > 0 && results.every((r) => r.status === "rejected");
-  if (offlineNote) { offlineNote = false; toast("ما في إنترنت، عم نعرض آخر أخبار محفوظة"); }
+let renderToken = 0, lastRefresh = Date.now();
+function showPill(fn) { const b = $("newpill"); b.style.display = "block"; b.onclick = () => { b.style.display = "none"; fn(); }; }
+function hidePill() { $("newpill").style.display = "none"; }
+const pickFeeds = () => FEEDS.filter((f) => (curPage === "all" || f.page === curPage) && (curCat === "reel" ? f.cat === "reel" : f.cat !== "reel" && (curCat === "all" || f.cat === curCat || f.cat === "news")));
 
+async function render(force, silent) {
+  const my = ++renderToken, list = $("list");
+  hidePill();
+  const feeds = pickFeeds(), extraP = extras(), got = new Map();
+  feeds.forEach((f) => { const v = cache[f.url] || readFeed(f.url); if (v) got.set(f.url, v); });
+  let painted = !!silent, dirty = false, finished = false, timer = null;
+  const doPaint = async () => { if (my !== renderToken) return; await paint(my, [...got.values()].flat(), extraP, finished && got.size === 0); painted = true; dirty = false; };
+  const settle = () => {
+    const busy = list.contains(document.activeElement) || list.querySelector("iframe");
+    if (window.scrollY < 150 && !busy) doPaint(); else showPill(() => { doPaint(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+  };
+  const arrived = () => {
+    if (my !== renderToken) return;
+    if (!painted) { clearTimeout(timer); timer = setTimeout(doPaint, 600); }   /* أول ظهور بعد ما توصل كم مصدر */
+    else if (finished) settle();
+    else dirty = true;
+  };
+  if (!silent) { if (got.size) await doPaint(); else list.innerHTML = skeleton(); }
+
+  await Promise.all(feeds.map((f) => {
+    if (cache[f.url] && !force && Date.now() - (cacheT[f.url] || 0) < TTL_MS) return Promise.resolve();
+    return loadFeed(f, force, (items) => { got.set(f.url, items); arrived(); })
+      .then((items) => { got.set(f.url, items); arrived(); }).catch(() => {});
+  }));
+  finished = true;
+  if (my !== renderToken) return;
+  lastRefresh = Date.now();
+  if (!painted) { clearTimeout(timer); await doPaint(); }
+  else if (dirty) settle();
+}
+
+async function paint(my, feedItems, extraP, allFailed) {
+  const list = $("list");
+  const cut = (it) => { const t = it.date && it.date.getTime(); return !t || Date.now() - t <= (AGE_DAYS[it.cat] ?? 7) * 86400000; };
+  const extra = await extraP;
+  if (my !== renderToken) return;
+  let items = feedItems.filter(cut).concat(extra);
+  if (offlineNote) { offlineNote = false; toast("ما في إنترنت، عم نعرض آخر أخبار محفوظة"); }
   const seen = new Set(), hidden = state.hidden || {};
   items = items.filter((it) => curCat === "all" ? it.cat !== "reel" : it.cat === curCat)
                .filter((it) => it.link && !hidden[it.link] && !seen.has(it.link) && seen.add(it.link))
@@ -773,7 +833,7 @@ async function render() {
   if (!items.length) {
     const failed = allFailed;
     list.innerHTML = '<div class="state">' + (failed ? "ما قدرنا نتصل بالإنترنت.<br>تأكد من الاتصال وجرب مرة تانية." : "ما في منشورات هلق.") + '<br><button class="retry" id="retry">إعادة المحاولة</button></div>';
-    $("retry").onclick = () => { Object.keys(cache).forEach((k) => delete cache[k]); render(); };
+    $("retry").onclick = () => { Object.keys(cache).forEach((k) => delete cache[k]); render(true); };
     return;
   }
 
@@ -806,6 +866,9 @@ window.addEventListener("scroll", () => {
   else if (y < lastY - 8 || y <= 0) h.classList.remove("hide");
   lastY = y;
 }, { passive: true });
+document.querySelector(".logo").onclick = () => { window.scrollTo({ top: 0, behavior: "smooth" }); render(true); };
+document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRefresh > 10 * 60 * 1000) render(true, true); });
+setInterval(() => { if (!document.hidden && Date.now() - lastRefresh > 10 * 60 * 1000) render(true, true); }, 5 * 60 * 1000);
 buildCats(); buildStories(); render();
 </script>
 </body>
