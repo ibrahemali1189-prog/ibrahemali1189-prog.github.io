@@ -467,10 +467,11 @@ const OLIVE_DB = {
 };
 const OLIVE_PER_DAY = 8;   /* كم بوست زيتون باليوم (غير التقويم الشهري) */
 const OLIVE_POOL = (() => { const cs = Object.entries(OLIVE_DB), out = [], total = cs.reduce((n, [, l]) => n + l.length, 0); for (let i = 0; out.length < total; i++) cs.forEach(([c, l]) => { if (l[i]) out.push([c, l[i]]); }); return out; })();
-const WEIGHT = { oliv: 3 };   /* كم بوست من هالصفحة بيطلع بكل دورة (الباقي واحد) */
+const WEIGHT = { oliv: 3, tan: 2 };   /* كم بوست من هالصفحة بيطلع بكل دورة (الباقي واحد) */
 const REELS_PER_DAY = 10;   /* عدد الريلز باليوم، وبعدها بتخلص */
 const SHORTS = (ch) => "https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH" + ch.slice(2);   /* قائمة الشورتس لأي قناة */
 const PAGES = [
+  { id:"tan",  name:"تعنيتا ضيعتنا", short:"تعنيتا", color:"#2E7D32" },
   { id:"wxn",  name:"طقس بلاد الشام", short:"طقس", color:"#0288D1" },
   { id:"ywx",  name:"الراصد الجوي", short:"طقس", color:"#0277BD" },
   { id:"sohr", name:"المرصد السوري", short:"مرصد", color:"#37474F" },
@@ -524,6 +525,8 @@ const FEEDS = [
   { page:"wxn",  cat:"news", gn:true, url:GN("طقس لبنان when:2d") },
   { page:"wxn",  cat:"news", gn:true, url:GN("طقس الأردن when:2d") },
   { page:"wxn",  cat:"news", gn:true, url:GN("site:arabiaweather.com when:2d") },
+  /* صفحات فيس (عن طريق FetchRSS): بتطلع نص فقط بدون صور وبدون أي رابط لفيس. أضف روابط تانية بنفس الشكل */
+  { page:"tan",  cat:"news", fb:true, url:"https://fetchrss.com/feed/1xF46q4fd4yQ1xF47I59kGjC.rss" },
   { page:"jad",  cat:"news", gn:true, url:GN("site:aljadeed.tv when:2d") },
   { page:"mtv",  cat:"news", gn:true, url:GN("site:mtv.com.lb when:2d") },
   { page:"may",  cat:"news", gn:true, url:GN("site:almayadeen.net when:2d") },
@@ -707,7 +710,20 @@ function readFeed(url) {
 const TTL_MS = 5 * 60 * 1000;          /* ما نعيد الجلب إذا الخبر أحدث من 5 دقايق */
 const AGE_DAYS = { news: 3, sport: 3, fun: 7, health: 14, agri: 30, video: 30, reel: 3650 };   /* أقدم عمر مسموح للخبر بالأيام */
 const cacheT = {};
+function fbText(html) {
+  const h = (html || "").replace(/<iframe[\s\S]*?<\/iframe>/gi, "").replace(/<img[^>]*>/gi, "")
+    .replace(/<span[^>]*>\s*\(Feed generated with[\s\S]*?<\/span>/gi, "").replace(/<br\s*\/?>\s*/gi, "\n");
+  const d = document.createElement("div"); d.innerHTML = h;
+  return (d.textContent || "").replace(/\(Feed generated with[^)]*\)/gi, "").replace(/https?:\/\/\S+/g, "")
+    .replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+}
 function toItems(f, raw) {
+  if (f.fb) {
+    return raw.map((it) => ({ txt: fbText(it.desc), it })).filter((x) => x.txt.length > 3).map(({ txt, it }) => ({
+      page: f.page, src: "", plain: true, by: "", summary: txt, title: txt.slice(0, 60), img: "", link: "fb:" + (it.link || txt.slice(0, 30)),
+      date: parseDate(it.pub), vid: "", reel: false, topic: "", cat: "news", fb: true
+    }));
+  }
   return raw.map((it) => {
     let title = clean(it.title), summary = clean(it.desc).slice(0, 180);
     let src = "";
@@ -853,7 +869,8 @@ function buildCard(it, onHide) {
 
   a.querySelector(".shr").onclick = async () => {
     try {
-      if (navigator.share) await navigator.share({ title: it.title, url: it.link });
+      if (it.plain) { if (navigator.share) await navigator.share({ text: it.summary }); else { await navigator.clipboard.writeText(it.summary); toast("تم نسخ النص"); } }
+      else if (navigator.share) await navigator.share({ title: it.title, url: it.link });
       else { await navigator.clipboard.writeText(it.link); toast("تم نسخ الرابط"); }
     } catch {}
   };
@@ -1040,7 +1057,7 @@ async function render(force, silent) {
 
 async function paint(my, feedItems, extraP, allFailed) {
   const list = $("list");
-  const cut = (it) => { const t = it.date && it.date.getTime(); return !t || Date.now() - t <= (AGE_DAYS[it.cat] ?? 7) * 86400000; };
+  const cut = (it) => { const t = it.date && it.date.getTime(); return !t || Date.now() - t <= (it.fb ? 14 : (AGE_DAYS[it.cat] ?? 7)) * 86400000; };
   const extra = await extraP;
   if (my !== renderToken) return;
   let items = feedItems.filter(cut).concat(extra);
