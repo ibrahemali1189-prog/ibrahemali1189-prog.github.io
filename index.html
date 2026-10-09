@@ -136,6 +136,13 @@
   .vid.reelbox img { width:100%; height:100%; max-height:none; object-fit:cover; }
   .vid.reelbox iframe { width:100%; height:100%; aspect-ratio:auto; }
   .newpill { position:fixed; top:116px; left:50%; transform:translateX(-50%); z-index:15; display:none; background:var(--blue); color:#fff; border:0; border-radius:20px; padding:8px 18px; font-weight:700; box-shadow:0 2px 8px rgba(0,0,0,.3); cursor:pointer; }
+  .embed { position:fixed; inset:0; z-index:40; background:var(--bg); display:flex; flex-direction:column; }
+  .embed[hidden] { display:none; }
+  .ebar { height:56px; padding:0 8px; display:flex; align-items:center; gap:8px; background:var(--card); border-bottom:1px solid var(--line); flex:0 0 auto; }
+  .ebar button { width:44px; height:44px; border:0; border-radius:50%; background:var(--soft); display:flex; align-items:center; justify-content:center; cursor:pointer; }
+  .ebar .et { flex:1; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ebody { flex:1; min-height:0; display:flex; justify-content:center; background:var(--card); }
+  .ebody iframe { border:0; max-width:100%; background:#fff; }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:.85em; display:none; z-index:30; }
 </style>
 </head>
@@ -162,6 +169,13 @@
   <div id="list"></div>
 </main>
 <button class="newpill" id="newpill">↑ أخبار جديدة</button>
+<div class="embed" id="embed" role="dialog" aria-modal="true" aria-labelledby="etitle" hidden>
+  <div class="ebar">
+    <button id="eback" aria-label="رجوع"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <div class="et" id="etitle"></div>
+  </div>
+  <div class="ebody" id="ebody"></div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -472,6 +486,7 @@ const REELS_PER_DAY = 10;   /* عدد الريلز باليوم، وبعدها �
 const SHORTS = (ch) => "https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH" + ch.slice(2);   /* قائمة الشورتس لأي قناة */
 const PAGES = [
   { id:"tan",  name:"تعنيتا ضيعتنا", short:"تعنيتا", color:"#2E7D32" },
+  { id:"tann", name:"تعنيتا الآن", short:"الآن", color:"#E65100", embed:"https://www.facebook.com/people/%D8%AA%D8%B9%D9%86%D9%8A%D8%AA%D8%A7-%D8%A7%D9%84%D8%A2%D9%86/100079947804507/" },   /* صفحة فيس: بتنعرض بإطار فيس الرسمي، مو من feeds.json */
   { id:"wxn",  name:"طقس بلاد الشام", short:"طقس", color:"#0288D1" },
   { id:"ywx",  name:"الراصد الجوي", short:"طقس", color:"#0277BD" },
   { id:"sohr", name:"المرصد السوري", short:"مرصد", color:"#37474F" },
@@ -624,11 +639,40 @@ function buildStories() {
     b.innerHTML = '<div class="av sa"></div><div class="sn"></div>';
     b.querySelector(".sa").textContent = p.short;
     b.querySelector(".sn").textContent = p.name;
-    b.onclick = () => { curPage = curPage === p.id ? "all" : p.id; buildStories(); render(); };
+    b.onclick = () => { if (p.embed) { openEmbed(p); return; } curPage = curPage === p.id ? "all" : p.id; buildStories(); render(); };
     box.appendChild(b);
   });
   paintStories();
 }
+
+/* صفحة فيس بإطار فيس الرسمي (Page Plugin): بتعرض آخر المنشورات بدون RSS */
+let embedOpen = false;
+function openEmbed(p) {
+  const el = $("embed"), body = $("ebody");
+  $("etitle").textContent = p.name;
+  body.innerHTML = "";
+  el.hidden = false; embedOpen = true;
+  document.body.style.overflow = "hidden";
+  try { history.pushState({ emb: 1 }, ""); } catch {}
+  if (!navigator.onLine) { body.innerHTML = '<div class="state">تحتاج إنترنت لعرض الصفحة.</div>'; return; }
+  const w = Math.min(500, Math.max(180, body.clientWidth)), h = Math.max(300, body.clientHeight - 2);
+  const f = document.createElement("iframe");
+  f.title = p.name; f.width = w; f.height = h; f.scrolling = "no"; f.loading = "lazy";
+  f.setAttribute("allow", "encrypted-media");
+  f.setAttribute("sandbox", "allow-scripts allow-same-origin");   /* بدون popups ولا top-navigation: ما في شي بالإطار بيقدر يفتح تطبيق فيس أو تبويب */
+  f.src = "https://www.facebook.com/plugins/page.php?href=" + encodeURIComponent(p.embed) + "&tabs=timeline&width=" + w + "&height=" + h + "&small_header=true&adapt_container_width=true&hide_cover=false&show_facepile=false";
+  body.appendChild(f);
+}
+function closeEmbed(fromPop) {
+  if (!embedOpen) return;
+  embedOpen = false;
+  $("embed").hidden = true; $("ebody").innerHTML = "";
+  document.body.style.overflow = "";
+  if (!fromPop) { try { if (history.state && history.state.emb) history.back(); } catch {} }
+}
+$("eback").onclick = () => closeEmbed(false);
+window.addEventListener("popstate", () => closeEmbed(true));
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeEmbed(false); });
 
 /* صور القصص: آخر صورة متوفرة من كل صفحة (والألوان بتضل احتياطي إذا ما في صورة أو ما في نت) */
 let storyImg = {};
