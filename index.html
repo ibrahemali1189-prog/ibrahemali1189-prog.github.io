@@ -675,9 +675,9 @@ function classify(text) {
 }
 
 /* جلب الـ RSS */
-async function fetchT(url, ms = 7000) {
+async function fetchT(url, ms = 7000, opts = {}) {
   const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
-  try { return await fetch(url, { signal: c.signal }); } finally { clearTimeout(t); }
+  try { return await fetch(url, { ...opts, signal: c.signal }); } finally { clearTimeout(t); }
 }
 async function viaRss2Json(url) {
   const r = await fetchT("https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent(url));
@@ -734,8 +734,24 @@ function toItems(f, raw) {
              cat: f.cat !== "news" ? f.cat : classify(title + " " + summary) };
   });
 }
-/* بنجيب من الخدمتين بنفس الوقت: الأسرع بيظهر أول، وإذا التانية جابت أخبار أحدث بنحدّث */
-function fetchRaw(url, onLate) {
+/* الأخبار الجاهزة: ملف feeds.json بيتحدّث لحالو كل 15 دقيقة من GitHub Actions */
+const BUNDLE_MAX_AGE = 8 * 3600 * 1000;   /* إذا الملف أقدم من 8 ساعات نعتبره معطّل ونرجع للطريقة القديمة */
+let bundle = null, bundleAt = 0, bundleP = null;
+function loadBundle() {
+  if (bundleP && Date.now() - bundleAt < 4 * 60 * 1000) return bundleP;
+  bundleAt = Date.now();
+  bundleP = fetchT("feeds.json", 10000, { cache: "no-cache" })
+    .then((r) => (r.ok ? r.json() : null)).catch(() => null)
+    .then((j) => { if (j && j.feeds && Date.now() - Date.parse(j.updated) < BUNDLE_MAX_AGE) bundle = j; else if (!bundle) bundle = null; return bundle; });
+  return bundleP;
+}
+async function fetchRaw(url, onLate) {
+  const b = await loadBundle(), hit = b && b.feeds[url];
+  if (hit && hit.length) return hit;
+  return fetchProxies(url, onLate);   /* مصدر جديد ما وصل للملف بعد، أو الملف معطّل */
+}
+/* الطريقة القديمة (احتياط): بنجيب من الخدمتين بنفس الوقت، الأسرع بيظهر أول، وإذا التانية جابت أخبار أحدث بنحدّث */
+function fetchProxies(url, onLate) {
   const newest = (r) => Math.max(0, ...r.map((i) => parseDate(i.pub).getTime()));
   return new Promise((resolve, reject) => {
     let done = false, fails = 0, first = null;

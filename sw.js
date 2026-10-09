@@ -1,8 +1,9 @@
-const C = "fb-news-v17";
+const C = "fb-news-v18";
 const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(C).then((c) => c.addAll(SHELL)));
+  /* allSettled: إذا ملف ناقص (أيقونة مثلاً) ما بيفشل التثبيت كلو */
+  e.waitUntil(caches.open(C).then((c) => Promise.allSettled(SHELL.map((u) => c.add(u)))));
   self.skipWaiting();
 });
 
@@ -14,17 +15,20 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-/* ملفات التطبيق: من الشبكة أولاً، وإذا ما في إنترنت من الذاكرة */
+/* ملفات التطبيق: من الشبكة أولاً، وإذا ما في إنترنت من الذاكرة.
+   بنخزّن باسم الملف بدون ?t=... عشان الكاش ما يكبر وعشان الأوفلاين يلاقي الملف */
 self.addEventListener("fetch", (e) => {
   const r = e.request;
   if (r.method !== "GET") return;
-  if (new URL(r.url).origin !== location.origin) return;
+  const u = new URL(r.url);
+  if (u.origin !== location.origin) return;
+  const key = u.origin + u.pathname;
   e.respondWith(
     fetch(r)
       .then((res) => {
-        if (res.ok) { const cp = res.clone(); caches.open(C).then((c) => c.put(r, cp)); }
+        if (res.ok) { const cp = res.clone(); caches.open(C).then((c) => c.put(key, cp)); }
         return res;
       })
-      .catch(() => caches.match(r).then((m) => m || caches.match("./index.html")))
+      .catch(() => caches.match(key).then((m) => m || (r.mode === "navigate" ? caches.match("./index.html") : Response.error())))
   );
 });
