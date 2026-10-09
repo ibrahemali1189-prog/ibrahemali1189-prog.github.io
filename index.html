@@ -495,7 +495,6 @@ const PAGES = [
   { id:"yroof",name:"زراعة الأسطح",   short:"سط", color:"#33691E" },
   { id:"ymed", name:"الطبي",          short:"طب", color:"#00838F" },
   { id:"ydr",  name:"الدكتور",        short:"د",  color:"#00695C" },
-  { id:"yani", name:"عالم الحيوان",   short:"حي", color:"#E65100" }
 ];
 /* cat: news | sport | health
    روابط الرياضة والصحة هي بحث ووردبريس (?s=...&feed=rss2) ولم أتأكد منها، عدّلها أو أضف روابطك */
@@ -507,9 +506,8 @@ const FEEDS = [
   { page:"sana", cat:"health", url:"https://sana.sy/?s=" + encodeURIComponent("صحة") + "&feed=rss2" },
   /* مصادر جديدة (الروابط غير مؤكدة، إذا ما اشتغل مصدر عدّل رابطه أو احذف سطره) */
   { page:"aja",  cat:"news",   url:"https://www.aljazeera.net/feed" },
-  { page:"aja",  cat:"sport",  url:"https://www.aljazeera.net/?s=" + encodeURIComponent("رياضة") + "&feed=rss2" },
-  { page:"aja",  cat:"health", url:"https://www.aljazeera.net/?s=" + encodeURIComponent("صحة") + "&feed=rss2" },
-  { page:"may",  cat:"news",   url:"https://www.almayadeen.net/rss" },
+  { page:"aja",  cat:"sport",  gn:true, url:GN("site:aljazeera.net رياضة when:3d") },
+  { page:"aja",  cat:"health", gn:true, url:GN("site:aljazeera.net صحة when:7d") },
   /* مصادر عبر أخبار غوغل (بتجيب عناوين المواقع بدون صور، وهي أضمن من روابط RSS الرسمية) */
   { page:"sky",  cat:"news",  gn:true, url:GN("site:skynewsarabia.com when:2d") },
   { page:"yal",  cat:"sport", gn:true, url:GN("site:yallakora.com when:3d") },
@@ -519,7 +517,6 @@ const FEEDS = [
   { page:"els",  cat:"fun",   gn:true, url:GN("site:elcinema.com when:7d") },
   { page:"alar", cat:"fun",   gn:true, url:GN("فن مسلسل site:alarabiya.net when:3d") },
   { page:"sky",  cat:"fun",   gn:true, url:GN("site:skynewsarabia.com (فن OR مسلسل OR فنان OR منوعات) when:7d") },
-  { page:"sohr", cat:"news", url:"https://www.syriahr.com/feed/" },
   { page:"sohr", cat:"news", gn:true, url:GN("site:syriahr.com when:3d") },
   { page:"wxn",  cat:"news", gn:true, url:GN("طقس سوريا الأرصاد الجوية when:2d") },
   { page:"wxn",  cat:"news", gn:true, url:GN("طقس لبنان when:2d") },
@@ -550,7 +547,6 @@ const FEEDS = [
   { page:"yroof", cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCH7J2SnSflgT66kdWmZascw" },
   { page:"ymed",  cat:"video", topic:"طب",      url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCKBG2SimGyaghfY2HDGwwYA" },
   { page:"ydr",   cat:"video", topic:"طب",      url:"https://www.youtube.com/feeds/videos.xml?channel_id=UC4of8xqL-SpDvTdOrRzS4sw" },
-  { page:"yani",  cat:"video", topic:"حيوانات", url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCAys4tn6xQbHXIWO3-rQ62g" }
 ];
 const KEYWORDS = {
   sport:  ["رياضة","رياضي","كرة","مباراة","دوري","بطولة","لاعب","منتخب","نادي","هدف","كأس","مدرب"],
