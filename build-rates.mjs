@@ -17,35 +17,53 @@ function toText(html) {
     .replace(/\s+/g, " ");
 }
 
+const GAP = "[^\\d]{0,15}";
+const ok = (buy, sell) => buy > 0 && sell >= buy * 0.9 && sell <= buy * 1.5;
+
 export function parseRates(html) {
   const t = toText(html);
   const cur = {};
   for (const [code, name] of CURS) {
-    const m = new RegExp(name + "\\s+" + NUM + "\\s+" + NUM).exec(t);
-    if (!m) continue;
-    const buy = num(m[1]), sell = num(m[2]);
-    if (buy > 0 && sell >= buy * 0.9 && sell <= buy * 1.5) cur[code] = { buy, sell };
+    for (const m of t.matchAll(new RegExp(name + GAP + NUM + GAP + NUM, "g"))) {
+      const buy = num(m[1]), sell = num(m[2]);
+      if (ok(buy, sell)) { cur[code] = { buy, sell }; break; }
+    }
   }
   const gold = {};
   for (const k of ["24", "21", "18"]) {
-    const m = new RegExp(k + "K\\s+\\$\\s?" + NUM + "\\s+" + NUM + "\\s+" + NUM).exec(t);
-    if (!m) continue;
-    const usd = num(m[1]), buy = num(m[2]), sell = num(m[3]);
-    if (buy > 0 && sell >= buy * 0.9 && sell <= buy * 1.5) gold["k" + k] = { usd, buy, sell };
+    for (const m of t.matchAll(new RegExp(k + "K" + GAP + NUM + GAP + NUM + GAP + NUM, "g"))) {
+      const usd = num(m[1]), buy = num(m[2]), sell = num(m[3]);
+      if (ok(buy, sell)) { gold["k" + k] = { usd, buy, sell }; break; }
+    }
   }
   return { cur, gold };
 }
 
-async function main() {
-  let html;
-  try {
-    const r = await fetch(URL_, { headers: { "user-agent": "Mozilla/5.0 (compatible; FamilyNewsApp/1.0)", "accept-language": "ar" }, signal: AbortSignal.timeout(20000) });
-    if (!r.ok) throw new Error("HTTP " + r.status);
-    html = await r.text();
-  } catch (e) { console.log("فشل جلب الصفحة: " + e.message); return; }
+const BROWSER = {
+  "user-agent": "Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36",
+  accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+  "accept-language": "ar,en;q=0.8",
+  "upgrade-insecure-requests": "1",
+};
+/* إذا الموقع رفض GitHub مباشرة، منجرّب عن طريق خدمات وسيطة بتجيب الصفحة من عندها */
+const SOURCES = [
+  ["مباشر", URL_, BROWSER],
+  ["r.jina.ai", "https://r.jina.ai/" + URL_, {}],
+  ["allorigins", "https://api.allorigins.win/raw?url=" + encodeURIComponent(URL_), {}],
+];
 
-  const got = parseRates(html);
-  if (!got.cur.USD) { console.log("ما لقيت سعر الدولار بالصفحة (يمكن تغيّر شكلها)، ما رح أكتب شي"); return; }
+async function main() {
+  let got = null;
+  for (const [name, url, headers] of SOURCES) {
+    try {
+      const r = await fetch(url, { headers, signal: AbortSignal.timeout(25000) });
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      const g = parseRates(await r.text());
+      if (!g.cur.USD) throw new Error("ما لقيت سعر الدولار بالصفحة");
+      got = g; console.log("نجح الجلب عن طريق: " + name); break;
+    } catch (e) { console.log("فشل (" + name + "): " + e.message); }
+  }
+  if (!got) { console.log("ما نجحت أي طريقة، ما رح أكتب شي"); return; }
   console.log("عملات: " + Object.keys(got.cur).join(",") + " | ذهب: " + Object.keys(got.gold).join(","));
 
   let old = {};
