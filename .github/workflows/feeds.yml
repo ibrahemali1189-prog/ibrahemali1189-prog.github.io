@@ -17,10 +17,11 @@ jobs:
       - run: node build-feeds.mjs
       - run: node build-rates.mjs
         continue-on-error: true
+      - run: node build-photo.mjs
+        continue-on-error: true
       - name: commit
         run: |
           git config user.name "feeds-bot"
           git config user.email "feeds-bot@users.noreply.github.com"
-          git add feeds.json
-          if [ -f rates.json ]; then git add rates.json; fi
+          git add -A
           git diff --cached --quiet || (git commit -m "update feeds" && git pull --rebase && git push)
