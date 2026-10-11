@@ -13,6 +13,9 @@
   body.dark { --bg:#18191A; --card:#242526; --ink:#E4E6EB; --muted:#B0B3B8; --blue:#2D88FF; --line:#3E4042; --soft:#3A3B3C; }
   * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   html { -webkit-text-size-adjust:100%; }
+  body { overflow-x:hidden; }   /* يمنع الصفحة تنزاح يمين/يسار إذا في عنصر أعرض من الشاشة */
+  img, video, iframe { max-width:100%; }
+  .text, .lpt, .name, .bub, .when, .sn, .et { overflow-wrap:anywhere; }   /* روابط وهاشتاغات طويلة ما بتوسّع الصفحة */
   body { margin:0; background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",Tahoma,Arial,sans-serif; font-size:var(--size); line-height:1.5; }
   svg.ic { width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex:0 0 auto; }
   button { font:inherit; color:inherit; }
@@ -119,8 +122,9 @@
   .chip b { font-size:.88em; direction:ltr; display:inline-block; }
   .chip.next { background:var(--blue); color:#fff; }
   .chip.next small { color:#fff; opacity:.9; }
-  .prices { display:flex; gap:8px; }
-  .prices div { flex:1; background:var(--bg); border-radius:10px; padding:6px 10px; line-height:1.35; }
+  .prices { display:flex; flex-wrap:wrap; gap:8px; }
+  .prices div { flex:1 1 calc(50% - 4px); background:var(--bg); border-radius:10px; padding:6px 10px; line-height:1.35; }
+  .prices div.wide { flex-basis:100%; }
   .prices small { display:block; color:var(--muted); font-size:.7em; }
   .prices b { font-size:.95em; }
   .wnote { color:var(--muted); font-size:.68em; margin-top:4px; }
@@ -1036,10 +1040,11 @@ const getPrayer = () => withSaved("prayer", async () => {
 });
 const getPrices = () => withSaved("prices", async () => {
   const out = {};
+  try { const r = await fetchT("rates.json", 8000, { cache: "no-cache" }); if (r.ok) out.rates = await r.json(); } catch {}   /* أسعار الليرة اليوم، بيحدّثها الـ Action */
   try { const r = await fetch("prices.json?t=" + Date.now(), { cache: "no-store" }); if (r.ok) out.manual = await r.json(); } catch {}
   try { const r = await fetch("https://open.er-api.com/v6/latest/USD"); const j = await r.json(); if (j.rates && j.rates.SYP) out.syp = j.rates.SYP; if (j.rates && j.rates.XAU) out.xau = 1 / j.rates.XAU; } catch {}
   try { const r = await fetch("https://api.gold-api.com/price/XAU"); const j = await r.json(); if (j.price) out.xau = j.price; } catch {}
-  if (!out.manual && !out.syp && !out.xau) throw new Error("prices");
+  if (!out.rates && !out.manual && !out.syp && !out.xau) throw new Error("prices");
   return out;
 });
 const n0 = (x) => Math.round(x).toLocaleString("en-US");
@@ -1065,14 +1070,21 @@ function buildWidgets() {
   });
   getPrices().then((p) => {
     if (!p) return; const v = p.v, m = v.manual || {}, cells = [];
-    if (m.usd_syp) cells.push(["الدولار", n0(m.usd_syp) + " ل.س"]);
-    else if (v.syp) cells.push(["الدولار (سعر رسمي)", n0(v.syp) + " ل.س"]);
-    if (m.gold21_syp) cells.push(["غرام الذهب عيار 21", n0(m.gold21_syp) + " ل.س"]);
+    const rt = v.rates && v.rates.cur && v.rates.cur.USD && Date.now() - Date.parse(v.rates.updated) < 48 * 3600 * 1000 ? v.rates : null;
+    if (rt) {
+      const f = (x) => (x >= 1000 ? n0(x) : x.toFixed(2));
+      [["USD", "الدولار"], ["EUR", "اليورو"], ["TRY", "الليرة التركية"], ["SAR", "الريال السعودي"]].forEach(([c, nm]) => {
+        const q = rt.cur[c]; if (q) cells.push([nm, f(q.sell) + " ل.س", "شراء " + f(q.buy) + " · قديمة " + n0(q.sell * 100)]);
+      });
+      const g = rt.gold && rt.gold.k21; if (g) cells.push(["غرام الذهب عيار 21", f(g.sell) + " ل.س", "شراء " + f(g.buy) + " · قديمة " + n0(g.sell * 100), true]);
+    } else if (m.usd_syp) cells.push(["الدولار", n0(m.usd_syp) + " ل.س"]);
+    else if (!rt && v.syp) cells.push(["الدولار (سعر رسمي)", n0(v.syp) + " ل.س"]);
+    if (rt && rt.gold && rt.gold.k21) {} else if (m.gold21_syp) cells.push(["غرام الذهب عيار 21", n0(m.gold21_syp) + " ل.س"]);
     else if (v.xau) cells.push(["غرام الذهب 21 (عالمي)", "$" + n0(v.xau / 31.1035 * 0.875)]);
     if (!cells.length) return;
     const box = el.querySelector(".w3"); box.innerHTML = '<div class="prices"></div><div class="wnote"></div>';
-    cells.forEach(([l, val]) => { const d = document.createElement("div"); d.innerHTML = "<small></small><b></b>"; d.querySelector("small").textContent = l; d.querySelector("b").textContent = val; box.querySelector(".prices").appendChild(d); });
-    box.querySelector(".wnote").textContent = m.date ? "آخر تحديث: " + m.date : "الأسعار تقريبية، تأكد من السوق";
+    cells.forEach(([l, val, sub, wide]) => { const d = document.createElement("div"); if (wide) d.className = "wide"; d.innerHTML = "<small></small><b></b>" + (sub ? '<small class="sub"></small>' : ""); d.querySelector("small").textContent = l; d.querySelector("b").textContent = val; if (sub) d.querySelector(".sub").textContent = sub; box.querySelector(".prices").appendChild(d); });
+    box.querySelector(".wnote").textContent = rt ? "المصدر: الليرة اليوم · آخر تحديث " + new Date(rt.updated).toLocaleTimeString("ar", { hour: "numeric", minute: "2-digit" }) : m.date ? "آخر تحديث: " + m.date : "الأسعار تقريبية، تأكد من السوق";
   });
   return el;
 }
