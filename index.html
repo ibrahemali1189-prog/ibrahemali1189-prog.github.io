@@ -147,6 +147,12 @@
   .ebar .et { flex:1; font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .ebody { flex:1; min-height:0; display:flex; justify-content:center; background:var(--card); }
   .ebody iframe { border:0; max-width:100%; background:#fff; }
+  .pbody { flex:1; min-height:0; overflow:auto; background:#000; display:flex; flex-direction:column; align-items:center; gap:8px; padding:8px 0; }
+  .pbody img { width:100%; max-width:900px; height:auto; display:block; }
+  .pbtn { display:flex; align-items:center; gap:10px; width:100%; border:0; background:var(--bg); border-radius:10px; padding:6px; cursor:pointer; text-align:right; }
+  .pbtn img { width:64px; height:64px; object-fit:cover; border-radius:8px; background:var(--soft); flex:0 0 auto; }
+  .pbtn b { display:block; font-size:.95em; }
+  .pbtn small { color:var(--muted); font-size:.75em; }
   .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 20px; border-radius:24px; font-size:.85em; display:none; z-index:30; }
 </style>
 </head>
@@ -179,6 +185,13 @@
     <div class="et" id="etitle"></div>
   </div>
   <div class="ebody" id="ebody"></div>
+</div>
+<div class="embed" id="phobox" role="dialog" aria-modal="true" aria-labelledby="ptitle" hidden>
+  <div class="ebar">
+    <button id="pback" aria-label="رجوع"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+    <div class="et" id="ptitle"></div>
+  </div>
+  <div class="pbody" id="pbody"></div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -682,7 +695,33 @@ function closeEmbed(fromPop) {
 }
 $("eback").onclick = () => closeEmbed(false);
 window.addEventListener("popstate", () => closeEmbed(true));
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeEmbed(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { closeEmbed(false); closePhotos(false); } });
+
+/* صور الأسعار من قناة تلغرام (بيجيبها build-photo.mjs ويحفظها بالريبو) */
+let photoOpen = false;
+function openPhotos(v, when) {
+  const body = $("pbody"); body.innerHTML = "";
+  $("ptitle").textContent = "أسعار اليوم" + (when ? " · " + when : "");
+  v.images.forEach((src) => { const im = document.createElement("img"); im.alt = "أسعار الصرف والذهب"; im.src = src + "?v=" + v.id; body.appendChild(im); });
+  $("phobox").hidden = false; photoOpen = true;
+  document.body.style.overflow = "hidden";
+  try { history.pushState({ pho: 1 }, ""); } catch {}
+}
+function closePhotos(fromPop) {
+  if (!photoOpen) return;
+  photoOpen = false;
+  $("phobox").hidden = true; $("pbody").innerHTML = "";
+  document.body.style.overflow = "";
+  if (!fromPop) { try { if (history.state && history.state.pho) history.back(); } catch {} }
+}
+$("pback").onclick = () => closePhotos(false);
+window.addEventListener("popstate", () => closePhotos(true));
+const getPhoto = () => withSaved("photo", async () => {
+  const r = await fetchT("rates-photo.json", 8000, { cache: "no-cache" });
+  if (!r.ok) throw new Error("photo");
+  const j = await r.json(); if (!j.images || !j.images.length) throw new Error("photo");
+  return j;
+});
 
 /* صور القصص: آخر صورة متوفرة من كل صفحة (والألوان بتضل احتياطي إذا ما في صورة أو ما في نت) */
 let storyImg = {};
@@ -1052,7 +1091,17 @@ const t12 = (hhmm) => { const [h, m] = hhmm.split(":").map(Number); return ((h %
 
 function buildWidgets() {
   const el = document.createElement("div"); el.className = "wcard";
-  el.innerHTML = '<div class="wrow w1"></div><div class="wrow w2"></div><div class="wrow w3"></div>';
+  el.innerHTML = '<div class="wrow w1"></div><div class="wrow w2"></div><div class="wrow w3"></div><div class="wrow w4"></div>';
+  getPhoto().then((p) => {
+    if (!p) return; const v = p.v, d = new Date(v.date);
+    const when = isNaN(d) ? "" : d.toLocaleString("ar", { day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
+    const b = document.createElement("button"); b.className = "pbtn";
+    b.innerHTML = '<img alt=""><span><b>صورة أسعار اليوم</b><small></small></span>';
+    b.querySelector("img").src = v.images[0] + "?v=" + v.id;
+    b.querySelector("small").textContent = "من قناة الليرة اليوم" + (when ? " · " + when : "");
+    b.onclick = () => openPhotos(v, when);
+    el.querySelector(".w4").appendChild(b);
+  });
   getWeather().then((w) => {
     if (!w) return; const v = w.v, [ic, nm] = WCODE(v.code);
     el.querySelector(".w1").innerHTML = '<div class="wtop"><div class="big"></div><div><b></b><br><span></span></div></div>';
