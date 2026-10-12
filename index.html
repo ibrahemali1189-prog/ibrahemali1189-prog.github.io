@@ -1151,10 +1151,10 @@ function buildWidgets() {
     const rt = v.rates && v.rates.cur && v.rates.cur.USD && Date.now() - Date.parse(v.rates.updated) < 48 * 3600 * 1000 ? v.rates : null;
     if (rt) {
       const f = (x) => (x >= 1000 ? n0(x) : x.toFixed(2));
-      [["USD", "الدولار"], ["EUR", "اليورو"], ["TRY", "الليرة التركية"], ["SAR", "الريال السعودي"]].forEach(([c, nm]) => {
+      [["USD", "الدولار"]].forEach(([c, nm]) => {
         const q = rt.cur[c]; if (q) cells.push([nm, f(q.sell) + " ل.س", "شراء " + f(q.buy) + " · قديمة " + n0(q.sell * 100)]);
       });
-      const g = rt.gold && rt.gold.k21; if (g) cells.push(["غرام الذهب عيار 21", f(g.sell) + " ل.س", "شراء " + f(g.buy) + " · قديمة " + n0(g.sell * 100), true]);
+      const g = rt.gold && rt.gold.k21; if (g) cells.push(["غرام الذهب عيار 21", f(g.sell) + " ل.س", "شراء " + f(g.buy) + " · قديمة " + n0(g.sell * 100)]);
     } else if (m.usd_syp) cells.push(["الدولار", n0(m.usd_syp) + " ل.س"]);
     else if (!rt && v.syp) cells.push(["الدولار (سعر رسمي)", n0(v.syp) + " ل.س"]);
     if (rt && rt.gold && rt.gold.k21) {} else if (m.gold21_syp) cells.push(["غرام الذهب عيار 21", n0(m.gold21_syp) + " ل.س"]);

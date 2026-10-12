@@ -4,7 +4,7 @@ import fs from "node:fs";
 
 const URL_ = "https://sp-today.com/";
 const HEARTBEAT_MS = 3 * 3600 * 1000;
-const CURS = [["USD", "دولار أمريكي"], ["EUR", "يورو"], ["TRY", "ليرة تركية"], ["SAR", "ريال سعودي"]];
+const CURS = [["USD", "دولار أمريكي"]];
 const NUM = "([\\d,]+(?:\\.\\d+)?)";
 const num = (s) => parseFloat(String(s).replace(/,/g, ""));
 
