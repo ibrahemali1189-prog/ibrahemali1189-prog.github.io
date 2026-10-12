@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <title>فيس بوك</title>
 <link rel="manifest" href="manifest.webmanifest">
+<script defer src="https://cloud.umami.is/script.js" data-website-id="a1973204-87a1-40a7-85bc-f1d03c927674" data-domains="ibrahemali1189-prog.github.io"></script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <style>
@@ -116,6 +117,14 @@
   .wtop .big { font-size:2em; line-height:1; }
   .wtop b { font-size:1.05em; }
   .wtop span { color:var(--muted); font-size:.85em; }
+  .wkbtn { margin-top:6px; width:100%; border:0; background:var(--bg); color:var(--ink); border-radius:10px; padding:8px 12px; font:inherit; font-weight:700; cursor:pointer; }
+  .wk { margin-top:6px; }
+  .wk[hidden] { display:none; }
+  .wkrow { display:grid; grid-template-columns:4.6em 1.8em 1fr auto; align-items:center; gap:6px; padding:6px 0; border-top:1px solid var(--line); }
+  .wkrow:first-child { border-top:0; }
+  .wkrow .wi { font-size:1.3em; line-height:1; }
+  .wkrow .wn { color:var(--muted); font-size:.85em; }
+  .wkrow .wt { font-weight:700; direction:ltr; text-align:end; }
   .chips { display:flex; gap:6px; }
   .chip { flex:1; text-align:center; background:var(--bg); border-radius:10px; padding:4px 2px; line-height:1.3; }
   .chip small { display:block; color:var(--muted); font-size:.7em; }
@@ -1067,9 +1076,11 @@ async function withSaved(key, fn) {
 const WCODE = (c) => c === 0 ? ["☀️","صافي"] : c <= 2 ? ["🌤️","غائم جزئياً"] : c === 3 ? ["☁️","غائم"] : c <= 48 ? ["🌫️","ضباب"] : c <= 57 ? ["🌦️","رذاذ"] : c <= 67 ? ["🌧️","مطر"] : c <= 77 ? ["❄️","ثلج"] : c <= 82 ? ["🌧️","زخات مطر"] : ["⛈️","عاصفة رعدية"];
 const getWeather = () => withSaved("weather", async () => {
   const [lat, lon] = CITIES[CITY] || CITIES["دمشق"];
-  const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1");
+  const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=" + lat + "&longitude=" + lon + "&current=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=7");
   const j = await r.json();
-  return { t: Math.round(j.current.temperature_2m), code: j.current.weather_code, max: Math.round(j.daily.temperature_2m_max[0]), min: Math.round(j.daily.temperature_2m_min[0]) };
+  const D = j.daily, rain = D.precipitation_probability_max || [];
+  return { t: Math.round(j.current.temperature_2m), code: j.current.weather_code, max: Math.round(D.temperature_2m_max[0]), min: Math.round(D.temperature_2m_min[0]),
+    days: D.time.map((d, i) => ({ d, code: D.weather_code[i], max: Math.round(D.temperature_2m_max[i]), min: Math.round(D.temperature_2m_min[i]), rain: rain[i] ?? 0 })) };
 });
 const getPrayer = () => withSaved("prayer", async () => {
   const [lat, lon] = CITIES[CITY] || CITIES["دمشق"];
@@ -1108,6 +1119,24 @@ function buildWidgets() {
     el.querySelector(".big").textContent = ic;
     el.querySelector("b").textContent = CITY + " · " + v.t + "°";
     el.querySelector(".wtop span").textContent = nm + " · العظمى " + v.max + "° والصغرى " + v.min + "°";
+    if (v.days && v.days.length > 1) {
+      const btn = document.createElement("button"), wk = document.createElement("div");
+      btn.className = "wkbtn"; btn.textContent = "توقعات الأسبوع ▾"; btn.setAttribute("aria-expanded", "false");
+      wk.className = "wk"; wk.hidden = true;
+      v.days.forEach((x, i) => {
+        const [y, m, d] = x.d.split("-").map(Number), [ic2, nm2] = WCODE(x.code);
+        const day = i === 0 ? "اليوم" : i === 1 ? "غداً" : new Date(y, m - 1, d, 12).toLocaleDateString("ar", { weekday: "long" });
+        const row = document.createElement("div"); row.className = "wkrow";
+        row.innerHTML = '<span class="wd"></span><span class="wi"></span><span class="wn"></span><span class="wt"></span>';
+        row.querySelector(".wd").textContent = day;
+        row.querySelector(".wi").textContent = ic2;
+        row.querySelector(".wn").textContent = nm2 + (x.rain >= 20 ? " · 💧" + x.rain + "%" : "");
+        row.querySelector(".wt").textContent = x.max + "° / " + x.min + "°";
+        wk.appendChild(row);
+      });
+      btn.onclick = () => { wk.hidden = !wk.hidden; btn.textContent = wk.hidden ? "توقعات الأسبوع ▾" : "توقعات الأسبوع ▴"; btn.setAttribute("aria-expanded", String(!wk.hidden)); };
+      el.querySelector(".w1").append(btn, wk);
+    }
   });
   getPrayer().then((p) => {
     if (!p) return; const v = p.v;
@@ -1238,6 +1267,20 @@ document.querySelector(".logo").onclick = () => { window.scrollTo({ top: 0, beha
 document.addEventListener("visibilitychange", () => { if (!document.hidden && Date.now() - lastRefresh > 10 * 60 * 1000) render(true, true); });
 setInterval(() => { if (!document.hidden && Date.now() - lastRefresh > 10 * 60 * 1000) render(true, true); }, 5 * 60 * 1000);
 buildCats(); buildStories(); render();
+
+/* إحصائيات الاستخدام (Umami): عدد المستخدمين ومدة بقاء كل واحد.
+   كل شخص بيفتح رابطو الخاص مرة: ...github.io/?u=اسمو، والاسم بيتحفظ بالجهاز. */
+(function analytics() {
+  const q = new URLSearchParams(location.search).get("u");
+  const who = q ? q.trim().slice(0, 40) : store.get("who", "");
+  if (q && who) store.set("who", who);
+  const whenUmami = (fn, tries = 40) => { if (window.umami) fn(); else if (tries) setTimeout(() => whenUmami(fn, tries - 1), 500); };
+  if (who) whenUmami(() => { try { window.umami.identify(who, { name: who }); } catch {} });
+  /* نبضة كل دقيقة طول ما التطبيق ظاهر: عشان مدة الزيارة تنحسب صح */
+  const beat = () => { if (document.visibilityState === "visible" && window.umami) { try { window.umami.track("alive"); } catch {} } };
+  setInterval(beat, 60000);
+  document.addEventListener("visibilitychange", beat);
+})();
 </script>
 </body>
 </html>
