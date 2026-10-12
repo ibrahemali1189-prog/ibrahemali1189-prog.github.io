@@ -1273,11 +1273,14 @@ buildCats(); buildStories(); render();
 (function analytics() {
   const q = new URLSearchParams(location.search).get("u");
   const who = q ? q.trim().slice(0, 40) : store.get("who", "");
-  if (q && who) store.set("who", who);
+  if (q && who) { store.set("who", who); toast("تم حفظ اسمك: " + who); }   /* بتظهر مرة وحدة لما تفتح الرابط الخاص، وبتأكد إنو الملف الجديد نزل */
+  const props = who ? { who } : undefined;                                 /* الاسم بينبعت مع كل حدث، فبتشوفو بقسم Events */
   const whenUmami = (fn, tries = 40) => { if (window.umami) fn(); else if (tries) setTimeout(() => whenUmami(fn, tries - 1), 500); };
-  if (who) whenUmami(() => { try { window.umami.identify(who, { name: who }); } catch {} });
+  whenUmami(() => {
+    try { if (who) window.umami.identify(who, { name: who }); window.umami.track("open", props); } catch {}
+  });
   /* نبضة كل دقيقة طول ما التطبيق ظاهر: عشان مدة الزيارة تنحسب صح */
-  const beat = () => { if (document.visibilityState === "visible" && window.umami) { try { window.umami.track("alive"); } catch {} } };
+  const beat = () => { if (document.visibilityState === "visible" && window.umami) { try { window.umami.track("alive", props); } catch {} } };
   setInterval(beat, 60000);
   document.addEventListener("visibilitychange", beat);
 })();
