@@ -625,7 +625,8 @@ const AGRI_PER_DAY = 6;   /* كم بوست زراعة باليوم (غير ال�
 const AGRI_POOL = (() => { const cs = Object.entries(AGRI_DB), out = [], total = cs.reduce((n, [, l]) => n + l.length, 0); for (let i = 0; out.length < total; i++) cs.forEach(([c, l]) => { if (l[i]) out.push([c, l[i]]); }); return out; })();
 const OLIVE_PER_DAY = 8;   /* كم بوست زيتون باليوم (غير التقويم الشهري) */
 const OLIVE_POOL = (() => { const cs = Object.entries(OLIVE_DB), out = [], total = cs.reduce((n, [, l]) => n + l.length, 0); for (let i = 0; out.length < total; i++) cs.forEach(([c, l]) => { if (l[i]) out.push([c, l[i]]); }); return out; })();
-const WEIGHT = { oliv: 3, tan: 2, agr: 2 };   /* كم بوست من هالصفحة بيطلع بكل دورة (الباقي واحد) */
+const WEIGHT = { oliv: 3, tan: 2, agr: 2, bnj: 3 };
+const LOCAL_FIRST = ["bnj", "tan"];   /* صفحات محلية: منشوراتها بتطلع أول الخلاصة بدون ما تفتح الصفحة */   /* كم بوست من هالصفحة بيطلع بكل دورة (الباقي واحد) */
 const REELS_PER_DAY = 10;   /* عدد الريلز باليوم، وبعدها بتخلص */
 const SHORTS = (ch) => "https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH" + ch.slice(2);   /* قائمة الشورتس لأي قناة */
 const PAGES = [
@@ -1364,7 +1365,8 @@ async function paint(my, feedItems, extraP, allFailed) {
   const pinned = items.filter((i) => i.pin).sort((a, b) => a.pin - b.pin || b.date - a.date);
   const rest = items.filter((i) => !i.pin), groups = new Map();
   rest.forEach((it) => { if (!groups.has(it.page)) groups.set(it.page, []); groups.get(it.page).push(it); });
-  const lists = [...groups.entries()].map(([k, l]) => ({ l, w: WEIGHT[k] || 1, i: 0 })), mixed = [];
+  const pri = (k) => { const n = LOCAL_FIRST.indexOf(k); return n < 0 ? 99 : n; };
+  const lists = [...groups.entries()].map(([k, l]) => ({ k, l, w: WEIGHT[k] || 1, i: 0 })).sort((a, b) => pri(a.k) - pri(b.k)), mixed = [];
   while (mixed.length < rest.length) lists.forEach((o) => { for (let c = 0; c < o.w; c++) if (o.l[o.i]) mixed.push(o.l[o.i++]); });
   items = [...pinned, ...mixed];
   if (curCat === "reel") items = items.slice(0, REELS_PER_DAY);
