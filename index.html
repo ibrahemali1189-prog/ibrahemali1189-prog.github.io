@@ -632,6 +632,8 @@ const SHORTS = (ch) => "https://www.youtube.com/feeds/videos.xml?playlist_id=UUS
 const PAGES = [
   { id:"tan",  name:"تعنيتا ضيعتنا", short:"تعنيتا", color:"#2E7D32" },
   { id:"bnj", name:"بنت جبيل نيوز", short:"بنت جبيل", color:"#00796B" },
+  { id:"tvs", name:"شام تي في", short:"تيفي", color:"#6A1B9A" },
+  { id:"pre", name:"الرئاسة السورية", short:"رئاسة", color:"#283593" },
   { id:"tann", name:"تعنيتا الآن", short:"الآن", color:"#E65100", embed:"https://www.facebook.com/people/%D8%AA%D8%B9%D9%86%D9%8A%D8%AA%D8%A7-%D8%A7%D9%84%D8%A2%D9%86/100079947804507/" },   /* صفحة فيس: بتنعرض بإطار فيس الرسمي، مو من feeds.json */
   { id:"fbsp", name:"سوريا بلس", short:"بلس", color:"#C62828", embed:"https://www.facebook.com/Soria.plus" },
   { id:"fbyas", name:"ياسور", short:"ياسور", color:"#00695C", embed:"https://www.facebook.com/yasour.org" },
@@ -691,6 +693,8 @@ const FEEDS = [
   /* صفحات فيس (عن طريق FetchRSS): بتطلع نص فقط بدون صور وبدون أي رابط لفيس. أضف روابط تانية بنفس الشكل */
   { page:"tan",  cat:"news", fb:true, url:"https://fetchrss.com/feed/1xF46q4fd4yQ1xF47I59kGjC.rss" },
   { page:"bnj",  cat:"news", tg:true, url:"https://t.me/s/bintjbeilnews" },   /* قناة تلغرام عامة */
+  { page:"tvs",  cat:"news", tg:true, url:"https://t.me/s/tvsham" },
+  { page:"pre",  cat:"news", tg:true, url:"https://t.me/s/SyPresidency" },
   { page:"jad",  cat:"news", gn:true, url:GN("site:aljadeed.tv when:2d") },
   { page:"mtv",  cat:"news", gn:true, url:GN("site:mtv.com.lb when:2d") },
   { page:"may",  cat:"news", gn:true, url:GN("site:almayadeen.net when:2d") },
