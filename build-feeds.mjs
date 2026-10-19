@@ -52,7 +52,7 @@ function parseFeed(xml, f) {
     if (!img) img = attr(b, "media:thumbnail", "url");
     if (!img) { const mc = /<media:content\b[^>]*>/i.exec(b); if (mc) { const u = attr(mc[0], "media:content", "url"); if (isImg(u, attr(mc[0], "media:content", "type")) || /image/i.test(attr(mc[0], "media:content", "medium"))) img = u; } }
     if (!img) img = firstImg(descRaw) || firstImg(full);
-    if (!title && !descRaw) continue;
+    if (!title && !descRaw && !img) continue;   /* منشور صورة بدون نص منحتفظ فيه */
     out.push({ title, desc: f.gn ? "" : descRaw.slice(0, f.fb ? 4000 : 500), link, pub, img });
   }
   return out.sort((a, b) => new Date(b.pub) - new Date(a.pub)).slice(0, MAX_PER_FEED);
@@ -61,7 +61,7 @@ function parseFeed(xml, f) {
 /* قنوات تلغرام العامة: صفحة المعاينة t.me/s/اسم_القناة (بدون تسجيل دخول) */
 const esc = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
 const tgText = (h) => unent(h.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "")).trim();
-export function parseTelegram(html, channel) {
+export function parseTelegram(html, channel, limit = MAX_PER_FEED) {
   const out = [];
   for (const part of html.split("tgme_widget_message_wrap").slice(1)) {
     const post = /data-post="([^"]+)"/.exec(part);
@@ -71,10 +71,30 @@ export function parseTelegram(html, channel) {
     const text = tx ? tgText(tx[1]) : "";
     const im = /tgme_widget_message_photo_wrap[^>]*background-image:\s*url\(['"]?([^'")]+)['"]?\)/.exec(part);
     const t = /<time[^>]*datetime="([^"]+)"/.exec(part);
-    if (text.length < 4) continue;                       /* منشور بدون نص (صورة أو فيديو بس) منتخطاه */
+    if (text.length < 4 && !im) continue;                /* منشور بدون نص وبدون صورة بس منتخطاه، وبدون نص وفيه صورة منحتفظ فيه */
     out.push({ title: text.split("\n")[0].slice(0, 120), desc: esc(text.slice(0, 1500)), link: "https://t.me/" + channel + "/" + id, pub: t ? t[1] : "", img: im ? unent(im[1]) : "" });
   }
-  return out.sort((a, b) => new Date(b.pub) - new Date(a.pub)).slice(0, MAX_PER_FEED);
+  return out.sort((a, b) => new Date(b.pub) - new Date(a.pub)).slice(0, limit);
+}
+
+/* قناة تلغرام: صفحة المعاينة بتعرض حوالي 20 منشور بس، فبنرجع لورا بصفحات أقدم (?before=) إذا طلبت f.pages */
+export async function moreTelegram(f, firstHtml) {
+  const ch = (/t\.me\/s\/(\w+)/.exec(f.url) || [])[1] || "";
+  const pages = Math.max(1, Math.min(f.pages || 1, 5)), limit = f.limit || MAX_PER_FEED;
+  let html = firstHtml, all = parseTelegram(firstHtml, ch, 1000);
+  for (let p = 1; p < pages; p++) {
+    const ids = [...html.matchAll(/data-post="[^"]+\/(\d+)"/g)].map((m) => +m[1]);
+    const min = ids.length ? Math.min(...ids) : 0;
+    if (min <= 1) break;
+    try {
+      const r = await fetch(f.url + "?before=" + min, { headers: { "user-agent": UA }, signal: AbortSignal.timeout(15000) });
+      if (!r.ok) break;
+      html = await r.text();
+    } catch { break; }
+    all = all.concat(parseTelegram(html, ch, 1000));
+  }
+  const seen = new Set();
+  return all.filter((x) => !seen.has(x.link) && seen.add(x.link)).sort((a, b) => new Date(b.pub) - new Date(a.pub)).slice(0, limit);
 }
 
 async function getFeed(f) {
@@ -84,7 +104,7 @@ async function getFeed(f) {
       const r = await fetch(f.url, { headers: { "user-agent": UA, accept: "application/rss+xml, application/xml, text/xml, */*" }, signal: AbortSignal.timeout(15000), redirect: "follow" });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const body = await r.text();
-      const items = f.tg ? parseTelegram(body, (/t\.me\/s\/(\w+)/.exec(f.url) || [])[1] || "") : parseFeed(body, f);
+      const items = f.tg ? await moreTelegram(f, body) : parseFeed(body, f);
       if (!items.length) throw new Error("no items");
       return items;
     } catch (e) { last = e; }

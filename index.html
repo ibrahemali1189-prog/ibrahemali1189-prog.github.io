@@ -625,7 +625,7 @@ const AGRI_PER_DAY = 6;   /* كم بوست زراعة باليوم (غير ال�
 const AGRI_POOL = (() => { const cs = Object.entries(AGRI_DB), out = [], total = cs.reduce((n, [, l]) => n + l.length, 0); for (let i = 0; out.length < total; i++) cs.forEach(([c, l]) => { if (l[i]) out.push([c, l[i]]); }); return out; })();
 const OLIVE_PER_DAY = 8;   /* كم بوست زيتون باليوم (غير التقويم الشهري) */
 const OLIVE_POOL = (() => { const cs = Object.entries(OLIVE_DB), out = [], total = cs.reduce((n, [, l]) => n + l.length, 0); for (let i = 0; out.length < total; i++) cs.forEach(([c, l]) => { if (l[i]) out.push([c, l[i]]); }); return out; })();
-const WEIGHT = { oliv: 3, tan: 2, agr: 2, bnj: 3 };
+const WEIGHT = { oliv: 3, tan: 2, agr: 2, bnj: 3, tvs: 3 };
 const LOCAL_FIRST = ["bnj", "tan"];   /* صفحات محلية: منشوراتها بتطلع أول الخلاصة بدون ما تفتح الصفحة */   /* كم بوست من هالصفحة بيطلع بكل دورة (الباقي واحد) */
 const REELS_PER_DAY = 10;   /* عدد الريلز باليوم، وبعدها بتخلص */
 const SHORTS = (ch) => "https://www.youtube.com/feeds/videos.xml?playlist_id=UUSH" + ch.slice(2);   /* قائمة الشورتس لأي قناة */
@@ -693,7 +693,7 @@ const FEEDS = [
   /* صفحات فيس (عن طريق FetchRSS): بتطلع نص فقط بدون صور وبدون أي رابط لفيس. أضف روابط تانية بنفس الشكل */
   { page:"tan",  cat:"news", fb:true, url:"https://fetchrss.com/feed/1xF46q4fd4yQ1xF47I59kGjC.rss" },
   { page:"bnj",  cat:"news", tg:true, url:"https://t.me/s/bintjbeilnews" },   /* قناة تلغرام عامة */
-  { page:"tvs",  cat:"news", tg:true, url:"https://t.me/s/tvsham" },
+  { page:"tvs",  cat:"news", tg:true, pages:3, limit:60, url:"https://t.me/s/tvsham" },
   { page:"pre",  cat:"news", tg:true, url:"https://t.me/s/SyPresidency" },
   { page:"jad",  cat:"news", gn:true, url:GN("site:aljadeed.tv when:2d") },
   { page:"mtv",  cat:"news", gn:true, url:GN("site:mtv.com.lb when:2d") },
@@ -950,8 +950,8 @@ function fbText(html) {
 }
 function toItems(f, raw) {
   if (f.fb || f.tg) {
-    return raw.map((it) => ({ txt: fbText(it.desc), it })).filter((x) => x.txt.length > 3).map(({ txt, it }) => ({
-      page: f.page, src: "", plain: true, by: "", summary: txt, title: txt.slice(0, 60), img: f.tg ? (it.img || "") : "", link: (f.tg ? "tg:" : "fb:") + (it.link || txt.slice(0, 30)),
+    return raw.map((it) => ({ txt: fbText(it.desc), it })).filter((x) => x.txt.length > 3 || x.it.img).map(({ txt, it }) => ({
+      page: f.page, src: "", plain: true, by: "", summary: txt, title: txt.slice(0, 60), img: it.img || "", link: (f.tg ? "tg:" : "fb:") + (it.link || it.img || txt.slice(0, 30)),
       date: parseDate(it.pub), vid: "", reel: false, topic: "", cat: "news", fb: true
     }));
   }
@@ -1069,7 +1069,7 @@ function buildCard(it, onHide) {
     box.onclick = play; media.appendChild(box);
   } else if (it.plain) {
     text.textContent = it.summary;
-    if (it.img) { const im = document.createElement("img"); im.className = "pic"; im.alt = ""; im.loading = "lazy"; im.src = it.img; im.onerror = () => im.remove(); media.appendChild(im); }
+    if (it.img) { const im = document.createElement("img"); im.className = "pic"; im.alt = ""; im.loading = "lazy"; im.src = it.img; im.onerror = () => { im.remove(); if (!it.summary) a.remove(); }; media.appendChild(im); }   /* منشور صورة بدون نص: إذا الصورة ما انحمّلت منشيل البطاقة كلها */
   } else {
     text.textContent = it.summary;
     const lp = document.createElement("div"); lp.className = "lp"; lp.tabIndex = 0; lp.setAttribute("role", "link");
@@ -1364,7 +1364,7 @@ async function paint(my, feedItems, extraP, allFailed) {
   const seen = new Set(), hidden = state.hidden || {};
   items = items.filter((it) => curCat === "all" ? it.cat !== "reel" : it.cat === curCat)
                .filter((it) => it.link && !hidden[it.link] && !seen.has(it.link) && seen.add(it.link))
-               .filter((it) => !seen.has("t:" + it.title) && seen.add("t:" + it.title))
+               .filter((it) => !it.title || (!seen.has("t:" + it.title) && seen.add("t:" + it.title)))
                .sort((a, b) => b.date - a.date);
   const pinned = items.filter((i) => i.pin).sort((a, b) => a.pin - b.pin || b.date - a.date);
   const rest = items.filter((i) => !i.pin), groups = new Map();
