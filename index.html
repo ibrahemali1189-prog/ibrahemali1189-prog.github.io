@@ -74,7 +74,7 @@
   .hb button:active { background:var(--soft); }
   .text { padding:2px 12px 10px; font-size:1em; line-height:1.55; white-space:pre-line; }
   .text:empty { display:none; }
-  .lp { cursor:pointer; background:var(--soft); }
+  .lp { cursor:default; background:var(--soft); }
   .lp img { display:block; width:100%; max-height:360px; object-fit:cover; background:var(--line); }
   .lpb { padding:8px 12px 10px; }
   .dom { color:var(--muted); font-size:.72em; text-transform:uppercase; letter-spacing:.2px; direction:ltr; text-align:right; }
@@ -104,7 +104,8 @@
   .cm-form button { height:42px; padding:0 16px; border:0; border-radius:21px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
 
   .state { text-align:center; padding:36px 16px; color:var(--muted); }
-  .morebtn { display:block; width:calc(100% - 24px); margin:4px 12px 8px; height:44px; border:0; border-radius:8px; background:var(--soft); color:var(--blue); font-weight:700; cursor:pointer; }
+  .morebtn { display:block; width:calc(100% - 24px); margin:8px 12px 12px; height:52px; border:0; border-radius:26px; background:var(--blue); color:#fff; font-size:1.05em; font-weight:800; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.25); }
+  .morebtn::after { content:" ▾"; }
   .retry { margin-top:12px; height:42px; padding:0 22px; border:0; border-radius:8px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
   .caught { text-align:center; padding:26px 16px; color:var(--muted); font-size:.9em; }
   .caught svg { width:40px; height:40px; color:var(--blue); display:block; margin:0 auto 6px; }
@@ -144,7 +145,8 @@
   .sk .l1 { height:14px; width:92%; } .sk .l2 { height:14px; width:70%; } .sk .l3 { height:160px; border-radius:0; margin:12px -12px 0; }
   @keyframes pulse { 50% { opacity:.5; } }
   .clamp { display:-webkit-box; -webkit-line-clamp:4; -webkit-box-orient:vertical; overflow:hidden; }
-  .seemore { border:0; background:none; color:var(--muted); font-weight:700; padding:0 12px 8px; font-size:.9em; cursor:pointer; }
+  .seemore { border:0; background:none; color:var(--blue); font-weight:800; padding:4px 12px 10px; font-size:1em; cursor:pointer; }
+  .seemore::after { content:" ▾"; }
   .vid.reelbox { aspect-ratio:9/16; max-height:78vh; margin:0 auto; }
   .vid.reelbox img { width:100%; height:100%; max-height:none; object-fit:cover; }
   .vid.reelbox iframe { width:100%; height:100%; aspect-ratio:auto; }
@@ -634,34 +636,24 @@ const PAGES = [
   { id:"bnj", name:"بنت جبيل نيوز", short:"بنت جبيل", color:"#00796B" },
   { id:"tvs", name:"شام تي في", short:"تيفي", color:"#6A1B9A" },
   { id:"pre", name:"الرئاسة السورية", short:"رئاسة", color:"#283593" },
+  { id:"aja", name:"الجزيرة", short:"جز", color:"#B8860B" },
+  { id:"may", name:"الميادين", short:"مي", color:"#1B5E8C" },
+  { id:"mtv", name:"إم تي في لبنان", short:"MTV", color:"#0D47A1" },
   { id:"tann", name:"تعنيتا الآن", short:"الآن", color:"#E65100", embed:"https://www.facebook.com/people/%D8%AA%D8%B9%D9%86%D9%8A%D8%AA%D8%A7-%D8%A7%D9%84%D8%A2%D9%86/100079947804507/" },   /* صفحة فيس: بتنعرض بإطار فيس الرسمي، مو من feeds.json */
   { id:"fbsp", name:"سوريا بلس", short:"بلس", color:"#C62828", embed:"https://www.facebook.com/Soria.plus" },
   { id:"fbyas", name:"ياسور", short:"ياسور", color:"#00695C", embed:"https://www.facebook.com/yasour.org" },
   { id:"fbwx", name:"طقس سوريا", short:"طقس", color:"#0277BD", embed:"https://www.facebook.com/Syriaweather12" },
   { id:"fbtv", name:"التلفزيون السوري", short:"TV", color:"#37474F", embed:"https://www.facebook.com/syrtelevision" },
-  { id:"fbhr", name:"المرصد - فيس", short:"مرصد", color:"#455A64", embed:"https://www.facebook.com/syriahro" },
   { id:"fbsham", name:"شام إف إم", short:"شام", color:"#AD1457", embed:"https://www.facebook.com/shamfmtv" },
   { id:"wxn",  name:"طقس بلاد الشام", short:"طقس", color:"#0288D1" },
   { id:"ywx",  name:"الراصد الجوي", short:"طقس", color:"#0277BD" },
-  { id:"sohr", name:"المرصد السوري", short:"مرصد", color:"#37474F" },
   { id:"oliv", name:"الزيتون",  short:"زت",  color:"#6B8E23" },
   { id:"agr",  name:"الزراعة",  short:"زرع", color:"#558B2F" },
-  { id:"jad",  name:"الجديد",   short:"جد",  color:"#C2185B" },
-  { id:"mtv",  name:"إم تي في لبنان", short:"MTV", color:"#0D47A1" },
   { id:"fam",  name:"العيلة",   short:"ع",   color:"#8E24AA" },
   { id:"tip",  name:"نصائح",    short:"نص",  color:"#00897B" },
   { id:"sana", name:"سانا",      short:"سا",  color:"#C0392B" },
   { id:"bbc",  name:"بي بي سي",  short:"BBC", color:"#B71C1C" },
-  { id:"aja",  name:"الجزيرة نت", short:"جز",  color:"#B8860B" },
-  { id:"may",  name:"الميادين",   short:"مي",  color:"#1B5E8C" },
-  { id:"sky",  name:"سكاي نيوز عربية", short:"سكاي", color:"#C62828" },
-  { id:"yal",  name:"يلا كورة",   short:"يلا", color:"#1565C0" },
-  { id:"els",  name:"السينما والدراما", short:"سين", color:"#AD1457" },
-  { id:"alar", name:"العربية - فن", short:"فن", color:"#5D4037" },
-  { id:"koo",  name:"كورة",       short:"كو",  color:"#2E7D32" },
   { id:"bein", name:"بي إن سبورتس", short:"bein", color:"#6A1B9A" },
-  { id:"yagr", name:"عالم الزراعة",   short:"زر", color:"#558B2F" },
-  { id:"yroof",name:"زراعة الأسطح",   short:"سط", color:"#33691E" },
   { id:"ymed", name:"الطبي",          short:"طب", color:"#00838F" },
   { id:"ydr",  name:"الدكتور",        short:"د",  color:"#00695C" },
 ];
@@ -674,18 +666,8 @@ const FEEDS = [
   { page:"sana", cat:"sport",  url:"https://sana.sy/?s=" + encodeURIComponent("رياضة") + "&feed=rss2" },
   { page:"sana", cat:"health", url:"https://sana.sy/?s=" + encodeURIComponent("صحة") + "&feed=rss2" },
   /* مصادر جديدة (الروابط غير مؤكدة، إذا ما اشتغل مصدر عدّل رابطه أو احذف سطره) */
-  { page:"aja",  cat:"news",   url:"https://www.aljazeera.net/feed" },
-  { page:"aja",  cat:"sport",  gn:true, url:GN("site:aljazeera.net رياضة when:3d") },
-  { page:"aja",  cat:"health", gn:true, url:GN("site:aljazeera.net صحة when:7d") },
   /* مصادر عبر أخبار غوغل (بتجيب عناوين المواقع بدون صور، وهي أضمن من روابط RSS الرسمية) */
-  { page:"sky",  cat:"news",  gn:true, url:GN("site:skynewsarabia.com when:2d") },
-  { page:"yal",  cat:"sport", gn:true, url:GN("site:yallakora.com when:3d") },
-  { page:"koo",  cat:"sport", gn:true, url:GN("site:kooora.com when:3d") },
   { page:"bein", cat:"sport", gn:true, url:GN("site:beinsports.com/ar when:3d") },
-  { page:"els",  cat:"fun",   gn:true, url:GN("site:elcinema.com when:7d") },
-  { page:"alar", cat:"fun",   gn:true, url:GN("فن مسلسل site:alarabiya.net when:3d") },
-  { page:"sky",  cat:"fun",   gn:true, url:GN("site:skynewsarabia.com (فن OR مسلسل OR فنان OR منوعات) when:7d") },
-  { page:"sohr", cat:"news", gn:true, url:GN("site:syriahr.com when:3d") },
   { page:"wxn",  cat:"news", gn:true, url:GN("طقس سوريا الأرصاد الجوية when:2d") },
   { page:"wxn",  cat:"news", gn:true, url:GN("طقس لبنان when:2d") },
   { page:"wxn",  cat:"news", gn:true, url:GN("طقس الأردن when:2d") },
@@ -695,9 +677,9 @@ const FEEDS = [
   { page:"bnj",  cat:"news", tg:true, url:"https://t.me/s/bintjbeilnews" },   /* قناة تلغرام عامة */
   { page:"tvs",  cat:"news", tg:true, pages:3, limit:60, url:"https://t.me/s/tvsham" },
   { page:"pre",  cat:"news", tg:true, url:"https://t.me/s/SyPresidency" },
-  { page:"jad",  cat:"news", gn:true, url:GN("site:aljadeed.tv when:2d") },
-  { page:"mtv",  cat:"news", gn:true, url:GN("site:mtv.com.lb when:2d") },
-  { page:"may",  cat:"news", gn:true, url:GN("site:almayadeen.net when:2d") },
+  { page:"aja",  cat:"news", tg:true, url:"https://t.me/s/AjaNews" },
+  { page:"may",  cat:"news", tg:true, url:"https://t.me/s/almayadeen" },
+  { page:"mtv",  cat:"news", tg:true, url:"https://t.me/s/MTVLebanoNews" },
   { page:"oliv", cat:"agri", gn:true, url:GN("(تقليم OR تسميد OR قطاف OR موسم OR فوائد) الزيتون when:30d") },
   { page:"oliv", cat:"agri", gn:true, url:GN("زراعة الزيتون سوريا when:30d") },
   { page:"oliv", cat:"agri", gn:true, url:GN("موسم الزيتون سوريا when:14d") },
@@ -719,12 +701,8 @@ const FEEDS = [
   /* ريلز (فيديوهات قصيرة): صحة وزراعة وطقس. الروابط غير مؤكدة، إذا قناة ما طلع منها شي بدّل رقمها أو احذف سطرها */
   { page:"ymed",  cat:"reel", topic:"صحة",   url:SHORTS("UCKBG2SimGyaghfY2HDGwwYA") },
   { page:"ydr",   cat:"reel", topic:"صحة",   url:SHORTS("UC4of8xqL-SpDvTdOrRzS4sw") },
-  { page:"yagr",  cat:"reel", topic:"زراعة", url:SHORTS("UCPiQ1hI6sbUy8kORlhH1-nA") },
-  { page:"yroof", cat:"reel", topic:"زراعة", url:SHORTS("UCH7J2SnSflgT66kdWmZascw") },
   { page:"ywx",   cat:"reel", topic:"طقس",   url:SHORTS("UCU0MQ4Oke25KSmDc26rY5lw") },
   /* قنوات يوتيوب: الرابط فيه channel_id، بدّله بأي قناة بدك ياها */
-  { page:"yagr",  cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCPiQ1hI6sbUy8kORlhH1-nA" },
-  { page:"yroof", cat:"video", topic:"زراعة",   url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCH7J2SnSflgT66kdWmZascw" },
   { page:"ymed",  cat:"video", topic:"طب",      url:"https://www.youtube.com/feeds/videos.xml?channel_id=UCKBG2SimGyaghfY2HDGwwYA" },
   { page:"ydr",   cat:"video", topic:"طب",      url:"https://www.youtube.com/feeds/videos.xml?channel_id=UC4of8xqL-SpDvTdOrRzS4sw" },
 ];
@@ -738,7 +716,16 @@ const REACTS = [["👍","أعجبني"],["❤️","أحببته"],["😂","أض�
 
 const $ = (id) => document.getElementById(id);
 const pageById = Object.fromEntries(PAGES.map((p) => [p.id, p]));
-const DOM = { sohr:"syriahr.com", sana:"sana.sy", bbc:"bbc.com", aja:"aljazeera.net", may:"almayadeen.net", sky:"skynewsarabia.com", yal:"yallakora.com", koo:"kooora.com", bein:"beinsports.com", els:"elcinema.com", alar:"alarabiya.net" };
+/* صور القنوات (من Action): بتظهر بدل الدواير الملوّنة، وإذا الصورة مش موجودة بتضل الدايرة */
+const AVATARS = {}, avP = {};
+FEEDS.forEach((f) => { if (f.tg) AVATARS[f.page] = "avatars/" + f.page + ".jpg"; });
+function applyAvatar(el, page) {
+  const u = AVATARS[page]; if (!u) return;
+  avP[page] = avP[page] || new Promise((res) => { const im = new Image(); im.onload = () => res(true); im.onerror = () => res(false); im.src = u; });
+  avP[page].then((ok) => { if (ok) { el.style.backgroundImage = 'url("' + u + '")'; el.style.backgroundSize = "cover"; el.style.backgroundPosition = "center"; el.textContent = ""; } });
+}
+function fmtViews(v) { const m = /^([\d.]+)\s*([KkMm]?)$/.exec(String(v).trim()); return m ? m[1] + (m[2] ? (m[2].toLowerCase() === "k" ? " ألف" : " مليون") : "") : String(v); }
+const DOM = { sana:"sana.sy", bbc:"bbc.com", bein:"beinsports.com" };
 let curPage = "all", curCat = "all";
 const cache = {};
 
@@ -779,7 +766,7 @@ function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display
 /* الأقسام (أيقونات فقط مثل فيس) */
 function buildCats() {
   const box = $("cats"); box.innerHTML = "";
-  [["all","home","الرئيسية"],["news","news","أخبار"],["sport","sport","رياضة"],["health","health","صحة"],["video","video","فيديو"],["fun","fun","تسلية"],["agri","agri","زراعة"],["reel","reel","ريلز"]].forEach(([id, ic, nm]) => {
+  [["all","home","الرئيسية"],["news","news","أخبار"],["sport","sport","رياضة"],["health","health","صحة"],["video","video","فيديو"],["agri","agri","زراعة"],["reel","reel","ريلز"]].forEach(([id, ic, nm]) => {
     const b = document.createElement("button");
     b.setAttribute("aria-pressed", id === curCat); b.setAttribute("aria-label", nm);
     b.innerHTML = svg(ic).replace('class="ic"', 'class="ic"');
@@ -802,7 +789,7 @@ function buildStories() {
     b.className = "st"; b.dataset.page = p.id; b.setAttribute("aria-pressed", p.id === curPage);
     b.style.background = "linear-gradient(160deg," + p.color + "," + darker(p.color) + ")";
     b.innerHTML = '<div class="av sa"></div><div class="sn"></div>';
-    b.querySelector(".sa").textContent = p.short;
+    b.querySelector(".sa").textContent = p.short; applyAvatar(b.querySelector(".sa"), p.id);
     b.querySelector(".sn").textContent = p.name;
     b.onclick = () => { if (p.embed) { openEmbed(p); return; } curPage = curPage === p.id ? "all" : p.id; buildStories(); render(); };
     box.appendChild(b);
@@ -952,7 +939,7 @@ function toItems(f, raw) {
   if (f.fb || f.tg) {
     return raw.map((it) => ({ txt: fbText(it.desc), it })).filter((x) => x.txt.length > 3 || x.it.img).map(({ txt, it }) => ({
       page: f.page, src: "", plain: true, by: "", summary: txt, title: txt.slice(0, 60), img: it.img || "", link: (f.tg ? "tg:" : "fb:") + (it.link || it.img || txt.slice(0, 30)),
-      date: parseDate(it.pub), vid: "", reel: false, topic: "", cat: "news", fb: true
+      date: parseDate(it.pub), vid: "", reel: false, topic: "", cat: "news", fb: true, views: f.tg ? (it.views || "") : ""
     }));
   }
   return raw.map((it) => {
@@ -1049,9 +1036,9 @@ function buildCard(it, onHide) {
     '<div class="actions"><button class="like"></button><button class="cmt">' + svg("cmt") + '<span>تعليق</span></button><button class="shr">' + svg("share") + '<span>مشاركة</span></button></div>' +
     '<div class="react-pick"></div>' +
     '<div class="comments"><div class="cm-list"></div><div class="cm-form"><input type="text" placeholder="اكتب تعليقاً…" aria-label="تعليق"><button>نشر</button></div></div>';
-  const av = a.querySelector(".av"); av.style.background = pg.color; av.textContent = it.by ? it.by.trim().charAt(0) : pg.short.slice(0, 3);
+  const av = a.querySelector(".av"); av.style.background = pg.color; av.textContent = it.by ? it.by.trim().charAt(0) : pg.short.slice(0, 3); applyAvatar(av, it.page);
   a.querySelector(".name").textContent = it.by || pg.name;
-  a.querySelector(".when span").textContent = ago(it.date) + (it.topic ? " · " + it.topic : "");
+  a.querySelector(".when span").textContent = ago(it.date) + (it.views ? " · 👁 " + fmtViews(it.views) : "") + (it.topic ? " · " + it.topic : "");
 
   const media = a.querySelector(".media"), text = a.querySelector(".text");
   let play = null;
@@ -1072,13 +1059,12 @@ function buildCard(it, onHide) {
     if (it.img) { const im = document.createElement("img"); im.className = "pic"; im.alt = ""; im.loading = "lazy"; im.src = it.img; im.onerror = () => { im.remove(); if (!it.summary) a.remove(); }; media.appendChild(im); }   /* منشور صورة بدون نص: إذا الصورة ما انحمّلت منشيل البطاقة كلها */
   } else {
     text.textContent = it.summary;
-    const lp = document.createElement("div"); lp.className = "lp"; lp.tabIndex = 0; lp.setAttribute("role", "link");
+    const lp = document.createElement("div"); lp.className = "lp";
     if (it.img) { const img = document.createElement("img"); img.alt = ""; img.loading = "lazy"; img.src = it.img; img.onerror = () => img.remove(); lp.appendChild(img); }
     lp.insertAdjacentHTML("beforeend", '<div class="lpb"><div class="dom"></div><div class="lpt"></div></div>');
     lp.querySelector(".dom").textContent = it.src || DOM[it.page] || "youtube.com";
     lp.querySelector(".lpt").textContent = it.title;
-    const go = () => window.open(it.link, "_blank", "noopener");
-    lp.onclick = go; lp.onkeydown = (e) => { if (e.key === "Enter") go(); };
+    /* الروابط ما بتفتح شي: البطاقة للعرض بس وبتضل ضمن التطبيق */
     media.appendChild(lp);
   }
 

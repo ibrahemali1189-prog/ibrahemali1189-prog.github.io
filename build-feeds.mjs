@@ -71,8 +71,9 @@ export function parseTelegram(html, channel, limit = MAX_PER_FEED) {
     const text = tx ? tgText(tx[1]) : "";
     const im = /tgme_widget_message_photo_wrap[^>]*background-image:\s*url\(['"]?([^'")]+)['"]?\)/.exec(part);
     const t = /<time[^>]*datetime="([^"]+)"/.exec(part);
+    const vw = /tgme_widget_message_views">([^<]+)</.exec(part);
     if (text.length < 4 && !im) continue;                /* منشور بدون نص وبدون صورة بس منتخطاه، وبدون نص وفيه صورة منحتفظ فيه */
-    out.push({ title: text.split("\n")[0].slice(0, 120), desc: esc(text.slice(0, 1500)), link: "https://t.me/" + channel + "/" + id, pub: t ? t[1] : "", img: im ? unent(im[1]) : "" });
+    out.push({ title: text.split("\n")[0].slice(0, 120), desc: esc(text.slice(0, 1500)), link: "https://t.me/" + channel + "/" + id, pub: t ? t[1] : "", img: im ? unent(im[1]) : "", views: vw ? vw[1].trim() : "" });
   }
   return out.sort((a, b) => new Date(b.pub) - new Date(a.pub)).slice(0, limit);
 }
@@ -97,6 +98,23 @@ export async function moreTelegram(f, firstHtml) {
   return all.filter((x) => !seen.has(x.link) && seen.add(x.link)).sort((a, b) => new Date(b.pub) - new Date(a.pub)).slice(0, limit);
 }
 
+/* صورة القناة: بتنحفظ مرة وحدة بـ avatars/اسم_الصفحة.jpg (احذف الملف إذا بدك تتحدّث) */
+export async function saveAvatar(f, html) {
+  try {
+    const file = "avatars/" + f.page + ".jpg";
+    if (fs.existsSync(file)) return;
+    const m = /tgme_page_photo_image[^>]*>\s*<img src="([^"]+)"/.exec(html) || /<meta property="og:image" content="([^"]+)"/.exec(html);
+    if (!m) return;
+    const r = await fetch(unent(m[1]), { headers: { "user-agent": UA }, signal: AbortSignal.timeout(20000) });
+    if (!r.ok) return;
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (buf.length < 500 || buf.length > 800 * 1024) return;
+    fs.mkdirSync("avatars", { recursive: true });
+    fs.writeFileSync(file, buf);
+    console.log("حفظت صورة القناة: " + file);
+  } catch {}
+}
+
 async function getFeed(f) {
   let last;
   for (let i = 0; i < 2; i++) {
@@ -104,6 +122,7 @@ async function getFeed(f) {
       const r = await fetch(f.url, { headers: { "user-agent": UA, accept: "application/rss+xml, application/xml, text/xml, */*" }, signal: AbortSignal.timeout(15000), redirect: "follow" });
       if (!r.ok) throw new Error("HTTP " + r.status);
       const body = await r.text();
+      if (f.tg) await saveAvatar(f, body);
       const items = f.tg ? await moreTelegram(f, body) : parseFeed(body, f);
       if (!items.length) throw new Error("no items");
       return items;
