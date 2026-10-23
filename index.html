@@ -106,6 +106,8 @@
   .state { text-align:center; padding:36px 16px; color:var(--muted); }
   .morebtn { display:block; width:calc(100% - 24px); margin:8px 12px 12px; height:52px; border:0; border-radius:26px; background:var(--blue); color:#fff; font-size:1.05em; font-weight:800; cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.25); }
   .morebtn::after { content:" ▾"; }
+  .whoami { text-align:center; padding:6px 12px 28px; }
+  .whoami button { border:0; background:none; color:var(--muted); font-size:.8em; text-decoration:underline; cursor:pointer; }
   .retry { margin-top:12px; height:42px; padding:0 22px; border:0; border-radius:8px; background:var(--blue); color:#fff; font-weight:700; cursor:pointer; }
   .caught { text-align:center; padding:26px 16px; color:var(--muted); font-size:.9em; }
   .caught svg { width:40px; height:40px; color:var(--blue); display:block; margin:0 auto 6px; }
@@ -188,6 +190,7 @@
   <div class="cbox" id="cbox"><textarea id="ctext" placeholder="شو عم يدور ببالك؟" aria-label="منشور جديد"></textarea><button id="cpost">نشر</button></div>
   <nav class="stories" id="stories" aria-label="الصفحات"></nav>
   <div id="list"></div>
+  <div class="whoami" id="whoami"></div>
 </main>
 <button class="newpill" id="newpill">↑ أخبار جديدة</button>
 <div class="embed" id="embed" role="dialog" aria-modal="true" aria-labelledby="etitle" hidden>
@@ -1405,18 +1408,37 @@ buildCats(); buildStories(); render();
 /* إحصائيات الاستخدام (Umami): عدد المستخدمين ومدة بقاء كل واحد.
    كل شخص بيفتح رابطو الخاص مرة: ...github.io/?u=اسمو، والاسم بيتحفظ بالجهاز. */
 (function analytics() {
+  const ck = () => { const m = /(?:^|; )who=([^;]*)/.exec(document.cookie); try { return m ? decodeURIComponent(m[1]) : ""; } catch { return ""; } };
   const q = new URLSearchParams(location.search).get("u");
-  const who = q ? q.trim().slice(0, 40) : store.get("who", "");
-  if (q && who) { store.set("who", who); toast("تم حفظ اسمك: " + who); }   /* بتظهر مرة وحدة لما تفتح الرابط الخاص، وبتأكد إنو الملف الجديد نزل */
-  const props = who ? { who } : undefined;                                 /* الاسم بينبعت مع كل حدث، فبتشوفو بقسم Events */
+  let who = (q ? q.trim() : store.get("who", "") || ck()).slice(0, 40);
+  /* الاسم بينحفظ بمكانين (التخزين + كوكي) عشان ما يضيع إذا انمسح واحد منهم */
+  const save = (w) => { who = w.trim().slice(0, 40); store.set("who", who); try { document.cookie = "who=" + encodeURIComponent(who) + "; max-age=31536000; path=/; SameSite=Lax"; } catch {} };
+  if (q && who) { save(who); toast("تم حفظ اسمك: " + who); } else if (who) save(who);
   const whenUmami = (fn, tries = 40) => { if (window.umami) fn(); else if (tries) setTimeout(() => whenUmami(fn, tries - 1), 500); };
-  whenUmami(() => {
-    try { if (who) window.umami.identify(who, { name: who }); window.umami.track("open", props); } catch {}
-  });
+  const VER = "r7";   /* رقم نسخة الكود: بيطلع مع كل حدث، فبتعرف إذا جهاز لسا على نسخة قديمة */
+  const P = () => (who ? { who, v: VER } : { v: VER });
+  const send = () => whenUmami(() => { try { if (who) window.umami.identify(who, { name: who }); window.umami.track("open", P()); } catch {} });
+  send();
   /* نبضة كل دقيقة طول ما التطبيق ظاهر: عشان مدة الزيارة تنحسب صح */
-  const beat = () => { if (document.visibilityState === "visible" && window.umami) { try { window.umami.track("alive", props); } catch {} } };
+  const beat = () => { if (document.visibilityState === "visible" && window.umami) { try { window.umami.track("alive", P()); } catch {} } };
   setInterval(beat, 60000);
-  document.addEventListener("visibilitychange", beat);
+  /* إذا رجع للتطبيق بعد غياب أكتر من نص ساعة، منعيد تحميلو: بياخد آخر نسخة وبيتسجّل كفتحة جديدة باسمو */
+  let hiddenAt = 0;
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+    const busy = (typeof embedOpen !== "undefined" && embedOpen) || (typeof photoOpen !== "undefined" && photoOpen);
+    if (hiddenAt && Date.now() - hiddenAt > 30 * 60 * 1000 && !busy) { hiddenAt = 0; location.reload(); return; }
+    beat();
+  });
+  /* سطر بآخر الصفحة بيبيّن الاسم المسجّل وبيسمح تكتبو أو تغيّرو بدون رابط */
+  const box = $("whoami");
+  const paint = () => {
+    box.innerHTML = ""; const b = document.createElement("button");
+    b.textContent = who ? "👤 مسجّل باسم: " + who + " · تغيير" : "👤 اضغط لتكتب اسمك";
+    b.onclick = () => { const n = prompt("شو اسمك؟ (يفضّل أحرف لاتينية)", who); if (n && n.trim()) { save(n); paint(); toast("تم حفظ اسمك: " + who); send(); } };
+    box.appendChild(b);
+  };
+  paint();
 })();
 </script>
 </body>
