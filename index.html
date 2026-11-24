@@ -38,11 +38,7 @@
   .sbar input { width:100%; height:40px; border:0; border-radius:20px; padding:0 16px; background:var(--soft); color:var(--ink); font:inherit; font-size:.95em; }
 
   main { max-width:680px; margin:0 auto; padding-bottom:40px; }
-  .composer { background:var(--card); display:flex; align-items:center; gap:8px; padding:10px 12px; margin-bottom:8px; }
   .av { border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; flex:0 0 auto; }
-  .composer .av { width:40px; height:40px; background:var(--blue); }
-  .composer .pill { flex:1; height:40px; border:1px solid var(--line); border-radius:20px; background:none; color:var(--muted); text-align:right; padding:0 14px; font-size:.95em; cursor:pointer; }
-  .composer .photo { width:40px; height:40px; border:0; background:none; color:#45BD62; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   .cbox { display:none; background:var(--card); padding:0 12px 12px; margin:-8px 0 8px; }
   .cbox.show { display:block; }
   .cbox textarea { width:100%; min-height:90px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; background:var(--card); color:var(--ink); font:inherit; resize:vertical; }
@@ -62,7 +58,7 @@
   .st.create .sn { text-shadow:none; bottom:10px; text-align:center; }
 
   article { background:var(--card); margin-bottom:8px; position:relative; }
-  @media (min-width:700px){ article,.stories,.composer{ border-radius:10px; } }
+  @media (min-width:700px){ article,.stories{ border-radius:10px; } }
   .head { display:flex; align-items:center; gap:8px; padding:12px 12px 6px; }
   .head .av { width:40px; height:40px; font-size:.8em; }
   .hm { flex:1; min-width:0; }
@@ -182,11 +178,6 @@
 </header>
 
 <main>
-  <div class="composer" id="composer">
-    <div class="av" id="meav"></div>
-    <button class="pill" id="openbox"></button>
-    <button class="photo" id="photo" aria-label="صورة"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
-  </div>
   <div class="cbox" id="cbox"><textarea id="ctext" placeholder="شو عم يدور ببالك؟" aria-label="منشور جديد"></textarea><button id="cpost">نشر</button></div>
   <nav class="stories" id="stories" aria-label="الصفحات"></nav>
   <div id="list"></div>
@@ -1116,9 +1107,7 @@ function buildCard(it, onHide) {
 
 /* منشورات المستخدم (محلية) */
 function openBox() { $("cbox").classList.add("show"); window.scrollTo({ top: 0, behavior: "smooth" }); $("ctext").focus(); }
-$("meav").textContent = USER_NAME.trim().charAt(0);
-$("openbox").textContent = "شو عم يدور ببالك يا " + USER_NAME.split(" ")[0] + "؟";
-$("openbox").onclick = openBox; $("photo").onclick = openBox; $("bplus").onclick = openBox;
+$("bplus").onclick = openBox;
 $("bmsg").onclick = () => toast("ما في رسائل جديدة");
 $("cpost").onclick = () => {
   const t = $("ctext").value.trim(); if (!t) return;
